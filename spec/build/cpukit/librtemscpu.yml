@@ -353,6 +353,7 @@ install:
   - cpukit/include/rtems/score/isrlevel.h
   - cpukit/include/rtems/score/isrlock.h
   - cpukit/include/rtems/score/memory.h
+  - cpukit/include/rtems/score/memoryprotection.h
   - cpukit/include/rtems/score/mpci.h
   - cpukit/include/rtems/score/mpciimpl.h
   - cpukit/include/rtems/score/mppkt.h
@@ -405,6 +406,7 @@ install:
   - cpukit/include/rtems/score/smplockstats.h
   - cpukit/include/rtems/score/smplockticket.h
   - cpukit/include/rtems/score/stack.h
+  - cpukit/include/rtems/score/stackprotection.h
   - cpukit/include/rtems/score/stackimpl.h
   - cpukit/include/rtems/score/states.h
   - cpukit/include/rtems/score/statesimpl.h
@@ -1509,6 +1511,7 @@ source:
 - cpukit/score/src/semaphore.c
 - cpukit/score/src/smpbarrierwait.c
 - cpukit/score/src/stackallocator.c
+- cpukit/score/src/stackprotection.c
 - cpukit/score/src/threadallocateunlimited.c
 - cpukit/score/src/thread.c
 - cpukit/score/src/threadchangepriority.c

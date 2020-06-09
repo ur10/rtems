@@ -28,7 +28,26 @@
 
 #include <rtems/posix/mmanimpl.h>
 #include <rtems/posix/shmimpl.h>
+#include <rtems/score/stackprotection.h>
 
+static uint32_t mmap_flag_translate(int prot)
+{
+  int prot_read;
+  int prot_write;
+  int memory_flag;
+
+  prot_read = (prot_read & PROT_READ) == PROT_READ;
+  prot_write = (prot_write & PROT_WRITE) == PROT_WRITE;
+ 
+  if(prot_read){
+    memory_flag |= ( RTEMS_READ_ONLY| RTEMS_MEMORY_CACHED );
+  }
+  if(prot_write) {
+    memory_flag |= ( RTEMS_READ_WRITE | RTEMS_MEMORY_CACHED );
+  }
+
+  return memory_flag;
+}
 
 /**
  * mmap chain of mappings.
@@ -44,12 +63,17 @@ void *mmap(
   mmap_mapping   *current_mapping;
   ssize_t         r;
   rtems_libio_t  *iop;
+  Thread_Control *executing;
+  Stack_Shared_attr sharing_attr;
   bool            map_fixed;
   bool            map_anonymous;
   bool            map_shared;
   bool            map_private;
   bool            is_shared_shm;
   int             err;
+  uint32_t memory_flags;
+  uintptr_t shared_stack_address;
+  int status;
 
   map_fixed = (flags & MAP_FIXED) == MAP_FIXED;
   map_anonymous = (flags & MAP_ANON) == MAP_ANON;
@@ -67,7 +91,10 @@ void *mmap(
 
   /*
    * We can provide read, write and execute because the memory in RTEMS does
-   * not normally have protections but we cannot hide access to memory.
+   * not normally have protections but we cannot hide access to memory. For
+   * thread-stack protection we can provide no-access option, but stacks are
+   * implicitly isolated and it makes no sense to specify no-access option for
+   * already isolated stacks.
    */
   if ( prot == PROT_NONE ) {
     errno = ENOTSUP;
@@ -292,11 +319,31 @@ void *mmap(
       free( mapping );
       return MAP_FAILED;
     }
-  }
+#if defined(RTEMS_THREAD_STACK_PROTECTION)    
+/*  
+ * If the name of the shared memory object begins with "/taskfs/", this is a
+ * stack-sharing operation and we set the memory attributes of the region for 
+ * the executing thread. Note- For sharing thread-stacks, the mmap() needs to
+ * be called from the 'context' of the executing thread.
+ */
+ if( strncmp( mapping->shm->Object.name.name_p, "/taskfs/", 8 ) == 0 ) {
+   executing = _Thread_Executing;
+   memory_flags = mmap_flag_translate( prot );
+   sharing_attr.access_flag = memory_flags;
+   sharing_attr.shared_stack_area = addr;
+   sharing_attr.shared_stack_size = len;
+  // Stack_protection_share_stack();
+ } else {
+    rtems_chain_append_unprotected( &mmap_mappings, &mapping->node );
+ }
 
+  mmap_mappings_lock_release( );
+#else
   rtems_chain_append_unprotected( &mmap_mappings, &mapping->node );
 
   mmap_mappings_lock_release( );
+#endif
+}
 
   return mapping->addr;
 }

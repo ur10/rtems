@@ -1,0 +1,20 @@
+
+*** BEGIN OF TEST  THREAD STACK PROTECTION  ***
+*** TEST VERSION: 5.0.0.a3b39c9e567f3f1ef5ab01de78b113e61b11853b-modified
+*** TEST STATE: EXPECTED_PASS
+*** TEST BUILD: RTEMS_NETWORKING RTEMS_POSIX_API
+*** TEST TOOLS: 7.5.0 20191114 (RTEMS 5, RSB 5 (3bd11fd4898b), Newlib 7947581)
+Creating thread1
+Creating thread2
+Joining thread1
+Writing to the stack of thread1
+Internal Exception Occured 
+Internal Exception Occured 
+Internal Exception Occured 
+Internal Exception Occured 
+Internal Exception Occured 
+Internal Exception Occured 
+Internal Exception Occured 
+Internal Exception Occured 
+Internal Exception Occured 
+Internal Exception Occured

@@ -18,6 +18,7 @@
 #include "config.h"
 #endif
 
+#include <rtems/score/memoryprotection.h>
 #include <rtems/score/threadimpl.h>
 #include <rtems/score/schedulerimpl.h>
 #include <rtems/score/stackimpl.h>
@@ -113,6 +114,15 @@ bool _Thread_Initialize(
      stack_area,
      stack_size
   );
+
+#if defined ( RTEMS_THREAD_STACK_PROTECTION )
+  /**
+   * Initialize the protected stack attributes. Initially we initialize the
+   * thread with no access attributes, on context switch/restore action the
+   * thread stacks are assigned READ/WRITE attribute.
+   */
+   the_thread->Start.Initial_stack.access_flags = RTEMS_NO_ACCESS | RTEMS_MEMORY_CACHED;
+#endif
 
   /*
    *  Get thread queue heads

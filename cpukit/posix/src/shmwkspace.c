@@ -16,6 +16,7 @@
 
 #include <errno.h>
 #include <string.h>
+#include <rtems/posix/pthread.h>
 #include <rtems/score/wkspace.h>
 #include <rtems/posix/shmimpl.h>
 
@@ -97,4 +98,3 @@ void * _POSIX_Shm_Object_mmap_from_workspace(
 
   return (char*)shm_obj->handle + off;
 }
-

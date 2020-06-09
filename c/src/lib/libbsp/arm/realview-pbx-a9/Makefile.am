@@ -74,6 +74,9 @@ librtemsbsp_a_SOURCES += ../../../../../../bsps/arm/shared/clock/clock-a9mpcore.
 librtemsbsp_a_SOURCES += ../../../../../../bsps/arm/shared/cache/cache-cp15.c
 librtemsbsp_a_SOURCES += ../../../../../../bsps/arm/shared/cache/cache-v7ar-disable-data.S
 
+#MMU
+librtemsbsp_a_SOURCES += ../../../../../../bsps/arm/realview-pbx-a9/mmu/bsp-set-mmu-attr.c
+
 # Start hooks
 librtemsbsp_a_SOURCES += ../../../../../../bsps/arm/realview-pbx-a9/start/bspstarthooks.c
 

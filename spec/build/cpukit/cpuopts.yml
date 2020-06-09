@@ -64,6 +64,8 @@ links:
 - role: build-dependency
   uid: optsztime
 - role: build-dependency
+  uid: optthreadstackprotection
+- role: build-dependency
   uid: optversion
 target: cpukit/include/rtems/score/cpuopts.h
 type: build

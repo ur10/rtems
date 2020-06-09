@@ -23,6 +23,7 @@
 #include <rtems/libio_.h>
 #include <rtems/seterr.h>
 
+#include <rtems/posix/pthread.h>
 #include <rtems/posix/shmimpl.h>
 #include <rtems/score/wkspace.h>
 #include <rtems/sysinit.h>
@@ -69,6 +70,60 @@ static ssize_t shm_read( rtems_libio_t *iop, void *buffer, size_t count )
 
   _Objects_Allocator_unlock();
   return bytes_read;
+}
+
+static int shm_stack_ftruncate( rtems_libio_t *iop, off_t length )
+{
+ int err;
+ Objects_Id id;
+ Objects_Name_or_id_lookup_errors obj_err;
+ Thread_Control *Control;
+ ISR_lock_Context lock_context;
+ size_t size;
+ char *name;
+ POSIX_Shm_Control *shm = iop_to_shm ( iop );
+
+ name = shm->Object.name.name_p;
+
+ /** We assign fixed pattern of naming for thread-stacks, and treat them 
+   *  accordingly.
+   */
+  if( strncmp( name, "/taskfs/", 8) == 0 ) {
+
+    /**
+     * Obtain the object id of the thread and then get the thread control block
+     * corresponding to that id. 
+     */
+    obj_err = _Objects_Name_to_id_u32(
+            &_POSIX_Threads_Information.Objects,
+           _Objects_Build_name( name[8], name[9], name[10], name[11]),
+            RTEMS_LOCAL,
+            &id
+            );
+    Control = _Thread_Get( id, &lock_context );
+     if( Control != NULL ) {
+       shm->shm_object.handle = Control->Start.Initial_stack.area;
+       if( length != Control->Start.Initial_stack.size) {
+         return ENOMEM;
+       }
+     }
+  } else{
+
+  _Objects_Allocator_lock();
+
+  err = (*shm->shm_object.ops->object_resize)( &shm->shm_object, length );
+
+    if ( err != 0 ) {
+      _Objects_Allocator_unlock();
+     rtems_set_errno_and_return_minus_one( err );
+    }
+  
+  }
+  _POSIX_Shm_Update_mtime_ctime( shm );
+
+ // _Objects_Allocator_unlock();
+  return 0;
+  
 }
 
 static int shm_ftruncate( rtems_libio_t *iop, off_t length )
@@ -306,7 +361,11 @@ static const rtems_filesystem_file_handlers_r shm_handlers = {
   .ioctl_h = rtems_filesystem_default_ioctl,
   .lseek_h = rtems_filesystem_default_lseek,
   .fstat_h = shm_fstat,
+#if defined (RTEMS_THREAD_STACK_PROTECTION)
+  .ftruncate_h = shm_stack_ftruncate,
+#else
   .ftruncate_h = shm_ftruncate,
+#endif  
   .fsync_h = rtems_filesystem_default_fsync_or_fdatasync,
   .fdatasync_h = rtems_filesystem_default_fsync_or_fdatasync,
   .fcntl_h = rtems_filesystem_default_fcntl,
