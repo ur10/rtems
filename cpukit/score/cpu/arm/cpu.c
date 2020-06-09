@@ -28,6 +28,7 @@
 
 #include <rtems/score/assert.h>
 #include <rtems/score/cpu.h>
+#include <rtems/score/stackprotection.h>
 #include <rtems/score/thread.h>
 #include <rtems/score/tls.h>
 
@@ -97,6 +98,9 @@ void _CPU_Context_Initialize(
 {
   (void) new_level;
 
+ #if defined (USE_THREAD_STACK_PROTECTION)
+  the_context->the_stack = _Stackprotection_Context_initialize();
+  #endif
   the_context->register_sp = (uint32_t) stack_area_begin + stack_area_size;
   the_context->register_lr = (uint32_t) entry_point;
   the_context->isr_dispatch_disable = 0;

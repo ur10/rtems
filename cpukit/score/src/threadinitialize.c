@@ -113,7 +113,10 @@ bool _Thread_Initialize(
      stack_area,
      stack_size
   );
-
+  /**
+   * Initialize the protected stack attributes.
+  */
+  _Stackprotection_Thread_initialize( &the_thread->the_stack, stack_area, stack_size);
   /*
    *  Get thread queue heads
    */
