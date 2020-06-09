@@ -66,6 +66,27 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 
 	str	r3, [r0, #ARM_CONTEXT_CONTROL_ISR_DISPATCH_DISABLE]
 
+#if defined ( USE_THREAD_STACK_PROTECTION )
+   /*
+    * Save the registers modifed during function call
+    */
+    mov r8, r0
+	mov r9, r1
+	mov r10, r2
+	/*
+	 * Load the parameters to be passed
+	 */
+	ldr r0, [r0, #ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET]
+	ldr r1, [r1, #ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET]
+	bl  _Stackprotection_Context_switch
+	/*
+	* Restore the saved registers
+	*/
+	mov r0, r8
+	mov r1, r9
+	mov r2, r10
+#endif
+
 #ifdef RTEMS_SMP
 	/*
 	 * The executing thread no longer executes on this processor.  Switch
@@ -132,7 +153,27 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
  *
  */
 DEFINE_FUNCTION_ARM(_CPU_Context_restore)
-        mov     r1, r0
+
+    mov     r1, r0
+#if defined( USE_THREAD_STACK_PROTECTION )
+   /*
+    * Save the registers modifed during function call
+    */
+	mov r8, r0
+	mov r9, r1
+	mov r10, r2
+	/*
+	 * Load the parameters to be passed
+	 */
+	ldr	r0, [r0, #ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET]
+	bl  _Stackprotection_Context_switch	
+	/*
+	* Restore the saved registers
+	*/	
+	mov r0, r8
+	mov r1, r9
+	mov r2, r10	
+#endif
 	GET_SELF_CPU_CONTROL	r2
         b       .L_restore
 
