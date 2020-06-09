@@ -30,6 +30,7 @@
  * ARM DDI 0406C.b (ID072512)
  */
 
+
 static uint32_t set_translation_table_entries(
   const void *begin,
   const void *end,

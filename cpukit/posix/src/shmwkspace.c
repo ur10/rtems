@@ -18,12 +18,36 @@
 #include <string.h>
 #include <rtems/score/wkspace.h>
 #include <rtems/posix/shmimpl.h>
+#include <rtems/stackname.h>
+
+#define USE_THREAD_STACK_PROTECTION
 
 int _POSIX_Shm_Object_create_from_workspace(
   POSIX_Shm_Object *shm_obj,
   size_t size
 )
 {
+#if defined(USE_THREAD_STACK_PROTECTION)
+  POSIX_Shm_Control *shm;
+
+  shm = RTEMS_CONTAINER_OF(shm_obj, POSIX_Shm_Control, shm_object);
+  /** We assign fixed pattern of naming for thread-stacks, and treat them 
+   *  accordingly.
+   */
+  if( strncmp(shm->Object.name.name_p, "/taskfs/", 8) == 0 ) {
+    shm_obj->handle = rtems_stack_address_get(shm->Object.name.name_p);
+    shm_obj->size = size;
+  } else {
+    shm_obj->handle = _Workspace_Allocate( size );
+    if ( shm_obj->handle == NULL ) {
+      return ENOMEM;
+  }
+
+  memset( shm_obj->handle, 0, size );
+  shm_obj->size = size;
+  return 0;
+}
+#else
   shm_obj->handle = _Workspace_Allocate( size );
   if ( shm_obj->handle == NULL ) {
     return ENOMEM;
@@ -32,6 +56,7 @@ int _POSIX_Shm_Object_create_from_workspace(
   memset( shm_obj->handle, 0, size );
   shm_obj->size = size;
   return 0;
+#endif
 }
 
 int _POSIX_Shm_Object_delete_from_workspace( POSIX_Shm_Object *shm_obj )
