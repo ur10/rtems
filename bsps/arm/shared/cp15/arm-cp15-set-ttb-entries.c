@@ -14,6 +14,7 @@
 
 #include <rtems.h>
 #include <libcpu/arm-cp15.h>
+#include <bsp/arm-cp15-set-ttb-entries.h>
 #include <bspopts.h>
 
 /*
@@ -29,6 +30,8 @@
  * ARMv7-A and ARMv7-R edition
  * ARM DDI 0406C.b (ID072512)
  */
+
+#define ARM_MMU_USE_SMALL_PAGES
 
 static uint32_t set_translation_table_entries(
   const void *begin,
