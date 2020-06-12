@@ -16,12 +16,11 @@ static void shared_stack_entry_remove(stack_attr_shared *shared_stack)
         node = _Chain_Head(control);
 
         while (!_Chain_Is_tail(control, node)) {
-          // memory_entries_unset(stack_attr->Base.stack_address, stack_attr->Base.size, stack_attr->Base.access_flags); TO-DO
+        memory_entries_unset(shared_stack->Base.stack_address, shared_stack->Base.size);
           node = node->next;
         }
             
     }
-
 }
 
 static void prot_stack_prev_entry_remove(stack_attr_prot *stack_attr)
@@ -34,7 +33,7 @@ static void prot_stack_prev_entry_remove(stack_attr_prot *stack_attr)
      
      while(!_Chain_Is_tail(&node_control, node)) {
         if(!stack_attr->current_stack) {
-         // memory_entries_unset(stack_attr->Base.stack_address, stack_attr->Base.size, stack_attr->Base.access_flags); TO-DO
+            memory_entries_unset(stack_attr->Base.stack_address, stack_attr->Base.size);
             shared_stack_entry_remove(&stack_attr->shared_stacks);
         }
      }
@@ -75,7 +74,9 @@ void prot_stack_allocate(uint32_t *stack_address, size_t size, uint32_t *page_ta
     stack_attr->Base.access_flags = READ_WRITE_CACHED;
     stack_attr->current_stack = true;
 
-    prot_stack_chain_append(&node_control, stack_attr);
+    prot_stack_chain_append(&node_control, stack_attr); // Add the stack attr. at the end of the chain
+    prot_stack_prev_entry_remove(stack_attr);           // Remove the previous stack entry
+
     memory_entries_set(stack_address, size, READ_WRITE);
     
 }
