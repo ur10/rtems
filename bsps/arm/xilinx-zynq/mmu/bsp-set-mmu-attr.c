@@ -23,6 +23,21 @@ void memory_entries_set(uint32_t *begin, size_t size, memory_flags flags)
     rtems_interrupt_local_enable(irq_level);
 }
 
+void memory_entries_unset(uint32_t *begin, size_t size)
+{
+  uint32_t access_flags;
+  uint32_t *end;
+  rtems_interrupt_level irq_level;
+
+  end = begin + size;
+  access_flags = memory_translate_flags(NO_ACCESS);
+
+  rtems_interrupt_local_disable(irq_level);
+  arm_cp15_set_translation_table_entries(begin, end, access_flags); 
+  rtems_interrupt_local_enable(irq_level);
+}
+
+
 uint32_t memory_translate_flags(memory_flags attr_flags)
 {
   uint32_t flags;
