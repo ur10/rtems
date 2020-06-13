@@ -16,8 +16,9 @@ static void shared_stack_entry_remove(stack_attr_shared *shared_stack)
         node = _Chain_Head(control);
 
         while (!_Chain_Is_tail(control, node)) {
-        memory_entries_unset(shared_stack->Base.stack_address, shared_stack->Base.size);
-          node = node->next;
+            shared_stack = (stack_attr_shared*) node;
+            memory_entries_unset(shared_stack->Base.stack_address, shared_stack->Base.size);
+            node = node->next;
         }
             
     }
@@ -32,9 +33,12 @@ static void prot_stack_prev_entry_remove(stack_attr_prot *stack_attr)
      node = _Chain_Head(&node_control);
      
      while(!_Chain_Is_tail(&node_control, node)) {
+         stack_attr = (stack_attr_prot*) node;
+
         if(!stack_attr->current_stack) {
             memory_entries_unset(stack_attr->Base.stack_address, stack_attr->Base.size);
             shared_stack_entry_remove(&stack_attr->shared_stacks);
+            node = node->next;
         }
      }
  }
