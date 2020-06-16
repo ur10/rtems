@@ -42,7 +42,7 @@ typedef struct stack_attr_shared
 
 typedef struct stack_attr_prot
 {
-  stack_attr_shared  shared_stacks;
+  stack_attr_shared  *shared_stacks;
   stack_attr    Base; 
   bool          current_stack;  
 } stack_attr_prot;
@@ -54,9 +54,11 @@ void prot_stack_allocate(uint32_t *stack_address, size_t size, uint32_t *page_ta
 
 void prot_stack_share(stack_attr_shared *shared, stack_attr_prot prot_stack);
 
+stack_attr_prot *prot_stack_context_initialize(void);
 
+void prot_stack_context_switch(stack_attr_prot *stack_attr);
 
-
+void prot_stack_context_restore(stack_attr_prot *stack_attr);
 
 
 /*             Shared_Stack Shared_Stack
