@@ -1,29 +1,16 @@
 /*This file needs to be moved to score and refactored*/
+#ifndef _RTEMS_SCORE_STACKMANAGEMENT_H
+#define _RTEMS_SCORE_STACKMANAGEMENT_H
+
+
+#if defined (ASM)
+#include <rtems/asm.h>
+#else
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <memory_management.h>
+#include <rtems/score/memorymanagement.h>
 #include <rtems/score/chainimpl.h>
-#include <rtems.h>
-
-/*
-typedef struct stack_attr_shared
-{
-  uint32_t  *stack_address;
-  size_t     stack_size;
-  uint32_t  *page_table_base;
-  memory_flags   access_flags;
-} stack_attr_shared;  
-
-typedef struct stack_attr_prot
-{
-  uint32_t   *stack_address;
-  size_t      stack_size;
-  uint32_t   *page_table_base;
-  memory_flags    access_flags;
-  stack_attr_shared *shared_stack;    
-} stack_attr_prot;  // These structs will be useful for context-switching and stack sharing
-*/
 
 typedef struct stack_attr
 {
@@ -67,3 +54,7 @@ protstack_base->node->node->node->node
    |                        |
 Shared_stack            Shared_Stack
 */
+
+#endif
+
+#endif

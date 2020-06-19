@@ -25,7 +25,7 @@
 #include <rtems.h>
 #include <rtems/score/heapimpl.h>
 #include <rtems/score/wkspace.h>
-#include <stack_management.h>
+#include <rtems/score/stackmanagement.h>
 
 #include <bsp/linker-symbols.h>
 

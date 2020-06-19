@@ -34,6 +34,7 @@
 #include <rtems/score/paravirt.h>
 #endif
 #include <rtems/score/arm.h>
+#include <rtems/score/stackmanagement.h>
 
 /**
  * @addtogroup RTEMSScoreCPUARM
@@ -183,7 +184,10 @@
 
 #define ARM_EXCEPTION_FRAME_VFP_CONTEXT_OFFSET 72
 
+#define ARM_STACK_PROT_ATTR_OFFSET  44
+
 #define ARM_VFP_CONTEXT_SIZE 264
+
 
 #ifndef ASM
 
@@ -235,6 +239,7 @@ typedef struct {
 #ifdef RTEMS_SMP
   volatile bool is_executing;
 #endif
+stack_attr_prot *stack_attr;
 } Context_Control;
 
 static inline void _ARM_Data_memory_barrier( void )

@@ -1,5 +1,8 @@
+#ifndef _RTEMS_SCORE_MEMORYMANAGEMENT_H
+#define _RTEMS_SCORE_MEMORYMANAGEMENT_H
+
 #include <stdlib.h>
-#include <stdio.h>
+#include <stdint.h>
 
 typedef enum
 {
@@ -18,3 +21,5 @@ void memory_entries_unset(uint32_t *begin_addr, size_t size);
                                    // for the allocated stack, instead of changing ttb;
 
 uint32_t memory_translate_flags(memory_flags flags);
+
+#endif

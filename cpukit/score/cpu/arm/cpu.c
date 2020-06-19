@@ -31,6 +31,7 @@
 #include <rtems/score/thread.h>
 #include <rtems/score/tls.h>
 
+
 #ifdef ARM_MULTILIB_VFP
   RTEMS_STATIC_ASSERT(
     offsetof( Context_Control, register_d8 ) == ARM_CONTEXT_CONTROL_D8_OFFSET,
@@ -97,6 +98,7 @@ void _CPU_Context_Initialize(
 {
   (void) new_level;
 
+  the_context->stack_attr = prot_stack_context_initialize();
   the_context->register_sp = (uint32_t) stack_area_begin + stack_area_size;
   the_context->register_lr = (uint32_t) entry_point;
   the_context->isr_dispatch_disable = 0;

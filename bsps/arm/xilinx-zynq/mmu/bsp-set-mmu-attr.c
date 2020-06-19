@@ -1,6 +1,6 @@
 #include <bsp/arm-cp15-start.h>
 #include <bsp/arm-cp15-set-ttb-entries.h>
-#include <memory_management.h>
+#include <rtems/score/memorymanagement.h>
 #include <libcpu/arm-cp15.h>
 #include <rtems.h>
 

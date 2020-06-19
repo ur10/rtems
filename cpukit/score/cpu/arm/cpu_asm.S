@@ -36,7 +36,7 @@
 #ifdef ARM_MULTILIB_ARCH_V4
 
         .text
-
+		
 /*
  *  void _CPU_Context_switch( run_context, heir_context )
  *  void _CPU_Context_restore( run_context, heir_context )
@@ -65,7 +65,9 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 #endif
 
 	str	r3, [r0, #ARM_CONTEXT_CONTROL_ISR_DISPATCH_DISABLE]
-
+	str r0, [r0, #44]
+	bl  prot_stack_context_switch
+	
 #ifdef RTEMS_SMP
 	/*
 	 * The executing thread no longer executes on this processor.  Switch

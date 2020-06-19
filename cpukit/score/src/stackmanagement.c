@@ -170,7 +170,8 @@ void prot_stack_context_restore(stack_attr_prot *stack_attr)
              node = node->next;
         }
     }
-
+  // Possible bug
+    stack_attr->current_stack = true;
     stack_address = stack_attr->Base.stack_address;
     size = stack_attr->Base.size;
 
