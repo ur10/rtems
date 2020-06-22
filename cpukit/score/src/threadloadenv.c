@@ -21,6 +21,10 @@
 
 #include <rtems/score/threadimpl.h>
 
+//#if defined( THREAD_STACK_PROTECTION )
+#include <rtems/score/stackmanagement.h>
+//#endif
+
 void _Thread_Load_environment(
   Thread_Control *the_thread
 )
@@ -35,6 +39,13 @@ void _Thread_Load_environment(
   the_thread->is_preemptible   = the_thread->Start.is_preemptible;
   the_thread->budget_algorithm = the_thread->Start.budget_algorithm;
   the_thread->budget_callout   = the_thread->Start.budget_callout;
+ 
+ // #if defined ( USE_THREAD_STACK_PROTECTION ) 
+  prot_stack_allocate(
+     the_thread->Start.Initial_stack.area,
+      the_thread->Start.Initial_stack.size,
+      (uint32_t *) 0x1000);
+  // #endif
 
   _Context_Initialize(
     &the_thread->Registers,
