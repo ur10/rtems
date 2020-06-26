@@ -41,10 +41,10 @@ void _Thread_Load_environment(
   the_thread->budget_callout   = the_thread->Start.budget_callout;
  
  // #if defined ( USE_THREAD_STACK_PROTECTION ) 
-  prot_stack_allocate(
+  /*prot_stack_allocate(
      the_thread->Start.Initial_stack.area,
       the_thread->Start.Initial_stack.size,
-      (uint32_t *) 0x1000);
+      (uint32_t *) 0x1000);*/
   // #endif
 
   _Context_Initialize(

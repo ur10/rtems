@@ -66,8 +66,11 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 
 	str	r3, [r0, #ARM_CONTEXT_CONTROL_ISR_DISPATCH_DISABLE]
  // #if defined ( USE_THREAD_STACK_PROTECTION )
-	str r0, [r0, #44]
+    mov r1, r0
+	ldr r0, [r0, #ARM_STACK_PROT_ATTR_OFFSET]
 	bl  prot_stack_context_switch
+//	ldr lr, [r3]
+	mov r0, r1
 //	#endif
 #ifdef RTEMS_SMP
 	/*
@@ -137,8 +140,10 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 DEFINE_FUNCTION_ARM(_CPU_Context_restore)
         mov     r1, r0
 	 //	#if defined( USE_THREAD_STACK_PROTECTION )
-		str		r0, [r0, #ARM_STACK_PROT_ATTR_OFFSET]
+	    ldr     r2,  [lr]
+		ldr		r0, [r0, #ARM_STACK_PROT_ATTR_OFFSET]
 		bl      prot_stack_context_restore
+		ldr     lr, [r2]
     //#endif
 	GET_SELF_CPU_CONTROL	r2
         b       .L_restore
