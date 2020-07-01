@@ -5,7 +5,7 @@
 Chain_Control prot_node_control = CHAIN_INITIALIZER_EMPTY(prot_node_control);
 
 Chain_Control *shared_node_control;
-
+#if 0
 static void shared_stack_entry_remove(stack_attr_shared *shared_stack)
 {
     Chain_Node    *node;
@@ -13,7 +13,7 @@ static void shared_stack_entry_remove(stack_attr_shared *shared_stack)
 
     control = &shared_stack->shared_node_control;
 
-    if(control != NULL && _Chain_Is_empty( control ) == false ) { // Check if there are shared stacks
+    if(control != NULL && _Chain_Is_empty( control ) == false ) { 
         node = _Chain_Head(control);
 
         while ( _Chain_Is_tail(control, node) == false ) {
@@ -23,7 +23,11 @@ static void shared_stack_entry_remove(stack_attr_shared *shared_stack)
         }
     }
 }
-
+#endif
+/*
+Iterate through the chain and remove the memory entries of all the
+'not-current stack'
+*/
 static void prot_stack_prev_entry_remove(void)
 {
 
@@ -39,18 +43,21 @@ static void prot_stack_prev_entry_remove(void)
 
         stack_attr = RTEMS_CONTAINER_OF(node,stack_attr_prot, Base.node); 
         
-        if( stack_attr->current_stack == false && _Chain_Is_head(&prot_node_control, node) == false ) {
+        if( stack_attr->current_stack == false ) {
             memory_entries_unset(stack_attr->Base.stack_address, stack_attr->Base.size);
          //   shared_stack_entry_remove(stack_attr->shared_stacks);
-            
+
         }
         node =  _Chain_Immutable_next( node );
      }
-   
-   return ;
+
 }
 
-static void prot_stack_chain_append (Chain_Control *control, stack_attr_prot *stack_append_attr)  //maybe we don't need the chain control parameter to be passed 
+/*
+Iterate to the end of the chain and mark all the 'currnet' stack as false
+Append the current stack attribute to the end of the chain
+*/
+static void prot_stack_chain_append (Chain_Control *control, stack_attr_prot *stack_append_attr)
 {
     Chain_Node *node;
     stack_attr_prot *present_stacks_attr;
@@ -61,10 +68,6 @@ static void prot_stack_chain_append (Chain_Control *control, stack_attr_prot *st
     } else {
         node = _Chain_First(&prot_node_control);
 
-        /*
-        This is done to ensure that we mark all the remaining
-        entries as not-current so that they can be removed.
-        */
         while(_Chain_Is_tail(&prot_node_control,node) == false) {
             
             present_stacks_attr = RTEMS_CONTAINER_OF(node, stack_attr_prot, Base.node);
@@ -73,30 +76,31 @@ static void prot_stack_chain_append (Chain_Control *control, stack_attr_prot *st
         }
         _Chain_Append_unprotected(&prot_node_control, &stack_append_attr->Base.node);
     }
-    return ;
+
 }
 
 void prot_stack_allocate(uint32_t *stack_address, size_t size, uint32_t *page_table_base)
 {
     stack_attr_prot *stack_attr;
     
-    // Have a condition for the case when the same stack is allocated twice, do not allocate a new node, will cause memory leaks.
-
+/*This field will be refactored and score objects will be used for dynamic allocation*/
     stack_attr = malloc(sizeof(stack_attr_prot));
-    
-    if(stack_attr != NULL)    {
+
+    if(stack_attr != NULL) {
     stack_attr->Base.stack_address = stack_address;
     stack_attr->Base.size = size;
     stack_attr->Base.page_table_base = page_table_base;
     stack_attr->Base.access_flags = READ_WRITE_CACHED;
     stack_attr->current_stack = true;
     }
-    prot_stack_chain_append(&prot_node_control, stack_attr ); // Add the stack attr. at the end of the chain
-    prot_stack_prev_entry_remove();           // Remove the previous stack entry
 
+    /*
+    Add the attribute field to the end of the chain, remove the memory entries of
+    previously allocated stack and set the memory entry of the currnet stack.
+    */
+    prot_stack_chain_append(&prot_node_control, stack_attr );
+    prot_stack_prev_entry_remove();
     memory_entries_set(stack_address, size, READ_WRITE_CACHED);
-
-    return;
     
 }
 
@@ -144,7 +148,8 @@ void prot_stack_context_switch(stack_attr_prot *stack_attr)
 
     shared_node_control = &stack_attr->shared_stacks->shared_node_control;
     }
-/*
+#if 0
+
 
   The shared node control structure will be initialized during stack sharing
 
@@ -161,7 +166,7 @@ void prot_stack_context_switch(stack_attr_prot *stack_attr)
              node = node->next;
         }
     }
-*/
+#endif
 }
 
 void prot_stack_context_restore(stack_attr_prot *stack_attr)
@@ -171,23 +176,27 @@ void prot_stack_context_restore(stack_attr_prot *stack_attr)
     Chain_Node *node;
     Chain_Control *shared_node_control;
     memory_flags flags;
+
+     if(stack_attr->current_stack == true) {
+             memory_entries_set(stack_address, size, READ_WRITE_CACHED);
+        }
      /*
       Remove the stacks shared with the current stack by iterating the chain
-     */
+      */
+ #if 0
     if(stack_attr != NULL){
-        
+       #if 0 
       /*  stack_attr->current_stack = true;
         stack_address = stack_attr->Base.stack_address;
         size = stack_attr->Base.size;
         */
+       #endif
         if(stack_attr->current_stack == true) {
              memory_entries_set(stack_address, size, READ_WRITE_CACHED);
         }
         return ;
 
-  //      shared_node_control = &stack_attr->shared_stacks->shared_node_control;
     }
-/*  The shared node control structure will be initialized during stack sharing
 
     if( shared_node_control !=NULL && _Chain_Is_empty( shared_node_control ) == false ) {
         node = _Chain_Head( shared_node_control );
@@ -203,15 +212,5 @@ void prot_stack_context_restore(stack_attr_prot *stack_attr)
              node = node->next;
         }
     }
-  // Possible bug
-  */  
+ #endif
 }
-
-/*
-What needs to be done - 
-
-1. Stack is allocated, its attribute structure is appended to the list
-2. Stack entry of the previously set stack, including the shared stack need to be removed.
-3. Stack entry of the current stack need to be set.
-
-*/

@@ -43,8 +43,9 @@ void bsp_stack_allocate_init(size_t stack_space_size)
 
 void *bsp_stack_allocate(size_t size)
 {
-  void *stack = NULL;
-  uint32_t *page_table_base;
+ void *stack = NULL;
+ uintptr_t *page_table_base;
+
   if (bsp_stack_heap.area_begin != 0) {
     stack = _Heap_Allocate(&bsp_stack_heap, size);
   }
@@ -53,10 +54,17 @@ void *bsp_stack_allocate(size_t size)
     stack = _Workspace_Allocate(size);
   }
   
-  page_table_base = 0x1000;   // This is hard-coded page table base address
-  prot_stack_allocate(stack, size, page_table_base);  // The current way to allocate protected stack is to assign memory attributes 
-                                                      // to the allocated memory and remove memory-entry of every other stack
-  
+  /*
+  This is a hard coded address, assigned just for the
+  purpose of consistency
+  */
+  page_table_base = 0x1000;   
+  /*
+  The current way to allocate protected stack is to assign memory attributes
+  to the allocated memory and remove memory-entry of every other stack
+  */
+  prot_stack_allocate(stack, size, page_table_base);
+
   return stack;
 }
 

@@ -4,7 +4,7 @@
 #include <libcpu/arm-cp15.h>
 #include <rtems.h>
 
-#ifdef THREAD_STACK_PROTECTION
+#ifdef USE_THREAD_STACK_PROTECTION
   #define ARM_MMU_USE_SMALL_PAGES
 #endif
     
@@ -44,25 +44,29 @@ uint32_t memory_translate_flags(memory_flags attr_flags)
   switch (attr_flags)
   {
   case READ_WRITE: 
-   flags = ARMV7_MMU_READ_WRITE;
-    break;
+     flags = ARMV7_MMU_READ_WRITE;
+  break;
+
   case READ_WRITE_CACHED:
-  flags = ARMV7_MMU_DATA_READ_WRITE_CACHED;
+    flags = ARMV7_MMU_DATA_READ_WRITE_CACHED;
   break;
 
   case READ_ONLY:
-  flags = ARMV7_MMU_READ_ONLY;
+    flags = ARMV7_MMU_READ_ONLY;
   break;
 
   case READ_ONLY_CACHED:
-  flags = ARMV7_MMU_READ_ONLY_CACHED;
+    flags = ARMV7_MMU_READ_ONLY_CACHED;
   break;
 
   case NO_ACCESS:
-  flags = 0;
+    flags = 0;
   break;
   
   default:
-    break;
+     return -1;
+  break;
   }
+
+  return flags;
 }
