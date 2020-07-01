@@ -25,6 +25,7 @@
 #include <rtems.h>
 #include <rtems/score/heapimpl.h>
 #include <rtems/score/wkspace.h>
+#include <rtems/score/stackmanagement.h>
 
 #include <bsp/linker-symbols.h>
 
@@ -42,7 +43,8 @@ void bsp_stack_allocate_init(size_t stack_space_size)
 
 void *bsp_stack_allocate(size_t size)
 {
-  void *stack = NULL;
+ void *stack = NULL;
+ uintptr_t *page_table_base;
 
   if (bsp_stack_heap.area_begin != 0) {
     stack = _Heap_Allocate(&bsp_stack_heap, size);
@@ -51,6 +53,17 @@ void *bsp_stack_allocate(size_t size)
   if (stack == NULL) {
     stack = _Workspace_Allocate(size);
   }
+  
+  /*
+  This is a hard coded address, assigned just for the
+  purpose of consistency
+  */
+  page_table_base = 0x1000;   
+  /*
+  The current way to allocate protected stack is to assign memory attributes
+  to the allocated memory and remove memory-entry of every other stack
+  */
+  prot_stack_allocate(stack, size, page_table_base);
 
   return stack;
 }

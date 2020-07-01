@@ -36,7 +36,6 @@
 #ifdef ARM_MULTILIB_ARCH_V4
 
         .text
-
 /*
  *  void _CPU_Context_switch( run_context, heir_context )
  *  void _CPU_Context_restore( run_context, heir_context )
@@ -65,6 +64,12 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 #endif
 
 	str	r3, [r0, #ARM_CONTEXT_CONTROL_ISR_DISPATCH_DISABLE]
+#if defined ( USE_THREAD_STACK_PROTECTION )
+    mov r2, r0
+	ldr r0, [r0, #ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET]
+	bl  prot_stack_context_switch
+	mov r0, r2
+#endif
 
 #ifdef RTEMS_SMP
 	/*
@@ -132,7 +137,13 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
  *
  */
 DEFINE_FUNCTION_ARM(_CPU_Context_restore)
-        mov     r1, r0
+    mov     r1, r0
+#if defined( USE_THREAD_STACK_PROTECTION )
+	ldr     r2,  [lr]
+	ldr		r0, [r0, #ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET]
+	bl      prot_stack_context_restore
+	ldr     lr, [r2]
+#endif
 	GET_SELF_CPU_CONTROL	r2
         b       .L_restore
 

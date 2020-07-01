@@ -97,6 +97,9 @@ void _CPU_Context_Initialize(
 {
   (void) new_level;
 
+  #if defined (USE_THREAD_STACK_PROTECTION)
+  the_context->stack_attr = prot_stack_context_initialize();
+  #endif
   the_context->register_sp = (uint32_t) stack_area_begin + stack_area_size;
   the_context->register_lr = (uint32_t) entry_point;
   the_context->isr_dispatch_disable = 0;
