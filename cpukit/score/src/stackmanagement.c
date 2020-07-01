@@ -23,11 +23,13 @@ static void shared_stack_entry_remove(stack_attr_shared *shared_stack)
         }
     }
 }
+
 #endif
 /*
 Iterate through the chain and remove the memory entries of all the
 'not-current stack'
 */
+
 static void prot_stack_prev_entry_remove(void)
 {
 
@@ -83,10 +85,11 @@ void prot_stack_allocate(uint32_t *stack_address, size_t size, uint32_t *page_ta
 {
     stack_attr_prot *stack_attr;
     
-/*This field will be refactored and score objects will be used for dynamic allocation*/
-    stack_attr = malloc(sizeof(stack_attr_prot));
+    // Have a condition for the case when the same stack is allocated twice, do not allocate a new node, will cause memory leaks.
 
-    if(stack_attr != NULL) {
+    stack_attr = malloc(sizeof(stack_attr_prot));
+    
+    if(stack_attr != NULL)    {
     stack_attr->Base.stack_address = stack_address;
     stack_attr->Base.size = size;
     stack_attr->Base.page_table_base = page_table_base;
@@ -197,6 +200,9 @@ void prot_stack_context_restore(stack_attr_prot *stack_attr)
         return ;
 
     }
+/*
+  The shared node control structure will be initialized during stack sharing
+*/
 
     if( shared_node_control !=NULL && _Chain_Is_empty( shared_node_control ) == false ) {
         node = _Chain_Head( shared_node_control );
