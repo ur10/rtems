@@ -133,6 +133,9 @@ void _Stackprotection_Context_switch(Stackprotection_The_stack *executing_stack,
     size_t  size;
     Chain_Node *node;
     Chain_Control *shared_node_control;
+    Stackprotection_Shared_stack *shared_stack;
+
+    shared_node_control = &executing_stack->shared_node_control;
 
      /*
       Remove the stacks shared with the current stack by iterating the chain
@@ -143,13 +146,23 @@ void _Stackprotection_Context_switch(Stackprotection_The_stack *executing_stack,
     size = executing_stack->Base.size;
 
         if(executing_stack->current_stack == true) {
-            executing_stack->current_stack = false;    
+            executing_stack->current_stack = false;
             Memorymanagement_Unset_entries(stack_address, size);
+            /**
+             * Take care of the shared stacks(if any).
+             */
+            if( _Chain_Is_empty( shared_node_control ) == false) {
+                node = _Chain_First( shared_node_control );
+    
+                while (_Chain_Is_tail( shared_node_control, node ) == false) {
+                    shared_stack = RTEMS_CONTAINER_OF( node, Stackprotection_Shared_stack, Base.node);
+                    Memorymanagement_Unset_entries( shared_stack->Base.stack_address, shared_stack->Base.size );
+                }
+            }
         }
     }
     
     _Stackprotection_Context_restore(heir_stack);
-    
 }
 
 void _Stackprotection_Context_restore(Stackprotection_The_stack *heir_stack)
@@ -160,6 +173,7 @@ void _Stackprotection_Context_restore(Stackprotection_The_stack *heir_stack)
     Memorymanagement_flags flags;
     Chain_Control *shared_node_control;
     Stackprotection_The_stack *present_stacks_attr;
+    Stackprotection_Shared_stack *shared_stack;
 
     if(heir_stack != NULL) {
              heir_stack->current_stack = true;
@@ -167,8 +181,22 @@ void _Stackprotection_Context_restore(Stackprotection_The_stack *heir_stack)
              size = heir_stack->Base.size;
              flags = heir_stack->Base.access_flags;
              Memorymanagement_Set_entries(stack_address, size, flags);
+             /**
+              * Take care of the shared stacks (if any).
+            `*/
+            if( _Chain_Is_empty( shared_node_control ) == false) {
+                node = _Chain_First( shared_node_control );
+    
+                while (_Chain_Is_tail( shared_node_control, node ) == false) {
+                    shared_stack = RTEMS_CONTAINER_OF( node, Stackprotection_Shared_stack, Base.node);
+                    flags = shared_stack->Base.access_flags;
+                    stack_address = shared_stack->Base.stack_address;
+                    size = shared_stack->Base.size;
+                    Memorymanagement_Set_entries( stack_address, size, flags );
+                }
+            }
     }
-
+#if 0
       node = _Chain_First(&_Stackprotection_node_control);
     /** Iterate through the chain and unset memory entries of all the
      *  previous thread-stacks 
@@ -182,4 +210,5 @@ void _Stackprotection_Context_restore(Stackprotection_The_stack *heir_stack)
             Memorymanagement_Unset_entries(present_stacks_attr->Base.stack_address, present_stacks_attr->Base.size);
             node = _Chain_Immutable_next( node );   
     }
+#endif   
 }

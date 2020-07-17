@@ -89,6 +89,11 @@ typedef struct
    * in question
    */
   Stackprotection_Shared_stack  *shared_stacks; 
+  /** 
+  * The chain control for tracking the shared stacks with the thread-stack in 
+  * question.
+  */
+  Chain_Control shared_node_control;
   /**This marks if the stack in question belongs to an executing thread*/
   bool          current_stack;  
 } Stackprotection_The_stack;
