@@ -56,18 +56,13 @@ void *bsp_stack_allocate(size_t size)
 
 #ifdef USE_THREAD_STACK_PROTECTION
   /**
-   *  Although we are not performing page table switching, still we assign a value 
-   * to avoid compiler warniing. 
+  * We mark the memory attributes of the allocated stack as 'NO-ACCESS'
+  * to isolate each allocated stack. The desired 'READ-WRITE' attribute
+  * is set during context restoration.
   */
-  page_table_base = (uintptr_t)0x1000;   
-
-  /**
-   * The current way to get protected stack is to assign memory attributes
-   *  to the allocated memory.
-  */
-  _Stackprotection_Allocate_attr( (uintptr_t)stack, size, page_table_base );
-
+  _Memory_protection_Set_entries( stack, size, NO_ACCESS);
 #endif
+
   return stack;
 }
 

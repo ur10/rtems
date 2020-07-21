@@ -56,31 +56,22 @@ typedef enum
 /**
  * @brief Define the memory access permission for the specified memory region
  * 
- * @param begin_addr Begining of the memory region
+ * @param begin_addr Beginning of the memory region
  * @param size Size of the memory region
  * @param flag Memory access flag
  * 
  */
-void _Memorymanagement_Set_entries(uintptr_t begin_addr, size_t size, Memorymanagement_flags flag);
+void _Memory_protection_Set_entries(uintptr_t begin_addr, size_t size, Memorymanagement_flags flag);
 
 /**
  * @brief Unset the memory access permission for the specified memory region
- * This operation implcitly sets the specified memory region with 'NO_ACCESS'
+ * This operation implicitly sets the specified memory region with 'NO_ACCESS'
  * flag.
  * 
  * @param begin_addr Begining of the memory region
  * @param size Size of the memory region
  */
-void _Memorymanagement_Unset_entries(uintptr_t begin_addr, size_t size);
-
-/**
- * @brief Translate the high-level flags to BSP-specifc MMU flags.
- * 
- * @param attr_flags High-level memory access flags.
- * 
- * @retval flag BSP-specifc MMU flag
- */
-uint32_t _Memorymanagement_Translate_flags(Memorymanagement_flags attr_flags);
+void _Memory_protection_Unset_entries(uintptr_t begin_addr, size_t size);
 
 #ifdef __cplusplus
 }

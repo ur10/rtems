@@ -34,7 +34,6 @@
 #include <rtems/score/paravirt.h>
 #endif
 #include <rtems/score/arm.h>
-#include <rtems/score/stackprotection.h>
 
 /**
  * @addtogroup RTEMSScoreCPUARM
@@ -154,25 +153,12 @@
 
 #define CPU_USE_GENERIC_BITFIELD_CODE TRUE
 
+#define CPU_USE_LIBC_INIT_FINI_ARRAY TRUE
+
 #define CPU_MAXIMUM_PROCESSORS 32
 
 #ifdef ARM_MULTILIB_HAS_THREAD_ID_REGISTER
   #define ARM_CONTEXT_CONTROL_THREAD_ID_OFFSET 44
-  #ifdef ARM_MULITLIB_VFP
-    #define ARM_STACK_PROT_ATTR_OFFSET   112
-  #else
-    #define ARM_STACK_PROT_ATTR_OFFSET  48
-  #endif 
-#endif
-
-#ifdef USE_THREAD_STACK_PROTECTION
-  #if defined ARM_MULITLIB_VFP
-    #define ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET   112
-  #elif ARM_MULTILIB_HAS_THREAD_ID_REGISTER
-    #define ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET 48
-  #else 
-    #define ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET 44
-  #endif 
 #endif
 
 #ifdef ARM_MULTILIB_VFP
@@ -193,6 +179,16 @@
   #endif
 #endif
 
+//#ifdef USE_THREAD_STACK_PROTECTION
+  #if defined ARM_MULITLIB_VFP
+    #define ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET   112
+  #elif defined ARM_MULTILIB_HAS_THREAD_ID_REGISTER
+    #define ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET 48
+  #else 
+    #define ARM_CONTEXT_CONTROL_STACK_ATTR_OFFSET 44
+  #endif 
+//#endif
+
 #define ARM_EXCEPTION_FRAME_SIZE 80
 
 #define ARM_EXCEPTION_FRAME_REGISTER_SP_OFFSET 52
@@ -200,7 +196,6 @@
 #define ARM_EXCEPTION_FRAME_VFP_CONTEXT_OFFSET 72
 
 #define ARM_VFP_CONTEXT_SIZE 264
-
 
 #ifndef ASM
 
@@ -252,7 +247,6 @@ typedef struct {
 #ifdef RTEMS_SMP
   volatile bool is_executing;
 #endif
-Stackprotection_The_stack *the_stack;
 } Context_Control;
 
 static inline void _ARM_Data_memory_barrier( void )

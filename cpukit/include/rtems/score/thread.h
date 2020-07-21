@@ -838,7 +838,7 @@ struct _Thread_Control {
   Context_Control                       Registers;
 
   /** This is the control block of the protected stack. */
-  Stackprotection_The_stack             the_stack;
+  Stackprotection_Stack            the_stack;
   
 #if ( CPU_HARDWARE_FP == TRUE ) || ( CPU_SOFTWARE_FP == TRUE )
   /** This field points to the floating point context for this thread.
