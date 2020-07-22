@@ -39,7 +39,15 @@
 #define _RTEMS_SCORE_STACKPROTECTION_H
 
 #if defined ( ASM )
+<<<<<<< HEAD
   #include <rtems/asm.h>
+=======
+<<<<<<< HEAD
+  #include <rtems/asm.h>
+=======
+#include <rtems/asm.h>
+>>>>>>> e22b462688b1de0db8b8dd5918dc92b1833d988b
+>>>>>>> 6305f034fa938f6b19178f35d748c716be7590b3
 #else
   #include <rtems/score/basedefs.h>
   #include <rtems/score/memorymanagement.h>

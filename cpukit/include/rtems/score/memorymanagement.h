@@ -65,12 +65,13 @@ void _Memory_protection_Set_entries(uintptr_t begin_addr, size_t size, Memoryman
 
 /**
  * @brief Unset the memory access permission for the specified memory region
- * This operation implicitly sets the specified memory region with 'NO_ACCESS'
+ * This operation implcitly sets the specified memory region with 'NO_ACCESS'
  * flag.
  * 
  * @param begin_addr Begining of the memory region
  * @param size Size of the memory region
  */
+
 void _Memory_protection_Unset_entries(uintptr_t begin_addr, size_t size);
 
 #ifdef __cplusplus

@@ -33,8 +33,11 @@
 #ifndef _RTEMS_STACKNAME_H
 #define _RTEMS_STACKNAME_H
 
+<<<<<<< HEAD
 #include <rtems/score/basedefs.h>
 
+=======
+>>>>>>> 6305f034fa938f6b19178f35d748c716be7590b3
 #ifdef __cplusplus
 extern "C" {
 #endif
