@@ -180,7 +180,6 @@ DEFINE_FUNCTION_ARM(_CPU_Context_restore)
 	mov r1, r9
 	mov r2, r10	
 #endif
-
 	GET_SELF_CPU_CONTROL	r2
         b       .L_restore
 
