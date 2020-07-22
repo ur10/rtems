@@ -102,11 +102,6 @@ typedef struct
 
 typedef struct 
 {
-<<<<<<< HEAD
-  /** The chain node for tracking names of the allocated stack*/
-  Chain_Node node;
-=======
->>>>>>> d2a510323b... Stack address to name mechanism
   /** The address of the allocated stack */
   uintptr_t stack_address;
   /** Name of the allocated stack */
