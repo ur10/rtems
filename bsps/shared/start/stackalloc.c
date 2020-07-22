@@ -25,7 +25,7 @@
 #include <rtems.h>
 #include <rtems/score/heapimpl.h>
 #include <rtems/score/wkspace.h>
-#include <rtems/score/stackprotection.h>
+#include <rtems/score/memorymanagement.h>
 
 #include <bsp/linker-symbols.h>
 
@@ -43,8 +43,7 @@ void bsp_stack_allocate_init(size_t stack_space_size)
 
 void *bsp_stack_allocate(size_t size)
 {
-  void *stack = NULL;
-  uintptr_t  page_table_base;
+ void *stack = NULL;
 
   if (bsp_stack_heap.area_begin != 0) {
     stack = _Heap_Allocate(&bsp_stack_heap, size);
@@ -53,25 +52,13 @@ void *bsp_stack_allocate(size_t size)
   if (stack == NULL) {
     stack = _Workspace_Allocate(size);
   }
-
-#ifdef USE_THREAD_STACK_PROTECTION
-  /**
-   *  Although we are not performing page table switching, still we assign a value 
-   * to avoid compiler warniing. 
-  */
-  page_table_base = (uintptr_t)0x1000;   
-
-  /**
-   * The current way to get protected stack is to assign memory attributes
-   *  to the allocated memory.
-  */
-  _Stackprotection_Allocate_attr( (uintptr_t)stack, size, page_table_base );
-
+#if defined (USE_THREAD_STACK_PROTECTION)
+_Memory_protection_Set_entries(stack, size, NO_ACCESS);
 #endif
   return stack;
 }
 
-void bsp_stack_free(void *stack)
+void bsp_stack_free(void *stack) 
 {
   bool ok = _Heap_Free(&bsp_stack_heap, stack);
 

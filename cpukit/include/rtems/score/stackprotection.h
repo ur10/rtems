@@ -39,7 +39,7 @@
 #define _RTEMS_SCORE_STACKPROTECTION_H
 
 #if defined ( ASM )
-#include <rtems/asm.h>
+  #include <rtems/asm.h>
 #else
   #include <rtems/score/basedefs.h>
   #include <rtems/score/memorymanagement.h>
@@ -56,9 +56,7 @@ extern "C" {
  * The following defines the attributes of a protected stack
  */
 typedef struct
-{
-  /** This is the node to the chain for tracking each allocated/shared stack */
-  Chain_Node    node; 
+{  
   /** This is the stack address */
   uintptr_t        stack_address;
   /** This is the stack size */
@@ -72,8 +70,10 @@ typedef struct
 /**
  * The following defines the control block  of a shared stack
  */
-typedef struct 
+typedef struct
 {
+  /** This is the chain node for tracking shared stacks */
+  Chain_Node node;
   /** This is the attribute of a shared stack*/
   Stackprotection_Attr    Base;
 } Stackprotection_Shared_stack;
@@ -94,18 +94,19 @@ typedef struct
   * question.
   */
   Chain_Control shared_node_control;
-  /**This marks if the stack in question belongs to an executing thread*/
-  bool          current_stack;  
-} Stackprotection_The_stack;
+} Stackprotection_Stack;
 
 /**
- * @brief Allocate the attributes of the stack in question.
- *
- * @param freechain The stack address.
- * @param size Size of the stack.
- * @param page_table_base Pointer to the start of a page table
+ * The following defines the control block for handling names of stack-address 
  */
-void _Stackprotection_Allocate_attr(uintptr_t stack_address, size_t size, uintptr_t page_table_base);
+
+typedef struct 
+{
+  /** The address of the allocated stack */
+  uintptr_t stack_address;
+  /** Name of the allocated stack */
+  char *name;
+}Stackprotection_Stack_name;
 
 /**
  * @brief Share a stack with another stack.
@@ -113,15 +114,16 @@ void _Stackprotection_Allocate_attr(uintptr_t stack_address, size_t size, uintpt
  * @param shared_stack The stack to be shared
  * @param target_stack The stack with which to share
  */
-void _Stackprotection_Share_stack(Stackprotection_The_stack *shared_stack, Stackprotection_The_stack* target_stack);
+void _Stackprotection_Share_stack(Stackprotection_Stack *shared_stack, Stackprotection_Stack* target_stack);
 
 /**
- * @brief Initialize the context of a thread with the control block of a 
- * protected stack
+ * @brief Initialize the protected-stack attributes of a thread
  * 
- * @retval the_stack The protected stack
+ * @param thread_stack The stack to be initialized
+ * @param stack_address Address of the stack
+ * @param size Size of the stack
  */ 
-Stackprotection_The_stack *_Stackprotection_Context_initialize(void);
+void _Stackprotection_Thread_initialize(Stackprotection_Stack *thread_stack, uintptr_t stack_address, size_t);
 
 /**
  * @brief Swap out the executing protected stack from the page table during 
@@ -132,7 +134,7 @@ Stackprotection_The_stack *_Stackprotection_Context_initialize(void);
  * 
  * @param excuting_stack Control block of the executing stack
  */
-void _Stackprotection_Context_switch(Stackprotection_The_stack *executing_stack, Stackprotection_The_stack *heir_stack);
+void _Stackprotection_Context_switch(Stackprotection_Stack *executing_stack, Stackprotection_Stack *heir_stack);
 
 /**
  * @brief Swap the restored protected stack  in the page table during context
@@ -143,7 +145,28 @@ void _Stackprotection_Context_switch(Stackprotection_The_stack *executing_stack,
  * 
  * @param Control block of the restored stack
  */ 
-void _Stackprotection_Context_restore(Stackprotection_The_stack *restored_stack);
+void _Stackprotection_Context_restore(Stackprotection_Stack *heir_stack);
+
+/**
+ * @brief Provide name to the address of the given stack and add it to the 
+ * chain structure for future extraction.
+ * 
+ * @param stack_address The address of the given stack.
+ * @param name_block Pointer to the stack-name control block
+ * 
+*/
+void _Stackprotection_Set_address_to_name(uintptr_t stack_address, Stackprotection_Stack_name *name_block);
+
+/**
+ * @brief Get the name of the provided stack address.
+ * 
+ * @param stack_address The address of the given stack.
+ * @param name_block Pointer to the stack-name control block
+ * 
+ * @retval NULL @a stack_address is not present in the chain. 
+ * @retval name @a stack_address name. 
+*/
+char *_Stackprotection_Get_address_to_name(uintptr_t stack_address, Stackprotection_Stack_name *name_block);
 
 #endif /* !defined ( ASM ) */
 

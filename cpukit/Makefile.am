@@ -779,6 +779,7 @@ librtemscpu_a_SOURCES += rtems/src/semrelease.c
 librtemscpu_a_SOURCES += rtems/src/semsetpriority.c
 librtemscpu_a_SOURCES += rtems/src/signalcatch.c
 librtemscpu_a_SOURCES += rtems/src/signalsend.c
+librtemscpu_a_SOURCES += rtems/src/stackname.c
 librtemscpu_a_SOURCES += rtems/src/status.c
 librtemscpu_a_SOURCES += rtems/src/statustext.c
 librtemscpu_a_SOURCES += rtems/src/statustoerrno.c

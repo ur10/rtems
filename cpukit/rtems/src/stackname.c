@@ -3,10 +3,9 @@
 /**
  * @file
  *
- * @ingroup RTEMSScoreMemorymanagement
+ * @ingroup 
  *
- * @brief This file provodes APIs for high-level memory management
- * 
+ * @brief RTEMS Stack name
  */
 
 /*
@@ -34,47 +33,57 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _RTEMS_SCORE_MEMORYMANAGEMENT_H
-#define _RTEMS_SCORE_MEMORYMANAGEMENT_H
-
-#include <rtems/score/basedefs.h>
-
-#ifdef __cplusplus
-extern "C" {
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
 
-/** This defines the various high-level memory access flags.*/
-typedef enum
+#include <rtems/score/objectimpl.h>
+#include <rtems/score/thread.h>
+
+/** Name of the required stack address */
+char *name;
+
+static bool stack_name_set_visitor(Thread_Control *the_thread, void *arg)
 {
-    READ_WRITE,
-    READ_WRITE_CACHED,
-    READ_ONLY,
-    READ_ONLY_CACHED,
-    NO_ACCESS
-} Memorymanagement_flags;
+    void *stack_address;
 
-/**
- * @brief Define the memory access permission for the specified memory region
- * 
- * @param begin_addr Beginning of the memory region
- * @param size Size of the memory region
- * @param flag Memory access flag
- * 
- */
-void _Memory_protection_Set_entries(uintptr_t begin_addr, size_t size, Memorymanagement_flags flag);
-
-/**
- * @brief Unset the memory access permission for the specified memory region
- * This operation implicitly sets the specified memory region with 'NO_ACCESS'
- * flag.
- * 
- * @param begin_addr Begining of the memory region
- * @param size Size of the memory region
- */
-void _Memory_protection_Unset_entries(uintptr_t begin_addr, size_t size);
-
-#ifdef __cplusplus
+    stack_address = arg;
+#if defined (USE_THREAD_STACK_PROTECTION)
+    if(arg != NULL) {
+        if ( the_thread->the_stack.Base.stack_address == arg ) {
+             _Stackprotection_Set_address_to_name( stack_address, &the_thread->name_block);
+             return true;
+        }
+    }
+#endif
 }
-#endif
 
+static bool stack_name_get_visitor(Thread_Control *the_thread, void *arg)
+{
+    void *stack_address;
+
+    stack_address = arg;
+#if defined (USE_THREAD_STACK_PROTECTION)
+    if(arg != NULL) {
+        if ( the_thread->the_stack.Base.stack_address == arg ) {
+             name = _Stackprotection_Get_address_to_name( stack_address, &the_thread->name_block); 
+             return true;
+        }
+    }
 #endif
+}
+
+void rtems_stack_name_set( uintptr_t stack_address ) 
+{  
+#if defined (USE_THREAD_STACK_PROTECTION)
+    rtems_task_iterate( stack_name_set_visitor, stack_address);
+#endif
+}
+
+char* rtems_stack_name_get( uintptr_t stack_address )
+{
+#if defined (USE_THREAD_STACK_PROTECTION) 
+    rtems_task_iterate( stack_address, stack_address);
+    return name;
+#endif
+}

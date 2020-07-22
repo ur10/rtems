@@ -39,95 +39,21 @@
 
 #include <rtems/score/stackprotection.h>
 
-Chain_Control _Stackprotection_node_control = CHAIN_INITIALIZER_EMPTY(_Stackprotection_node_control);
+Chain_Control stack_name_control = CHAIN_INITIALIZER_EMPTY(stack_name_control);
 
-static void _Stackprotection_Remove_prev_entry(void)
+#define STACK_ADDRESS_NAME(stack_address)   "/taskfs/"#stack_address
+
+void _Stackprotection_Thread_initialize(Stackprotection_Stack *thread_stack, uintptr_t stack_address, size_t stack_size)
 {
 
- Chain_Node *node;
- Stackprotection_The_stack *prot_stack;
-
-  if( _Chain_Is_empty(&_Stackprotection_node_control) == true ) {
-      _Chain_Initialize_empty(&_Stackprotection_node_control);
-  }
-     node = _Chain_First( &_Stackprotection_node_control );
- 
-     while(_Chain_Is_tail(&_Stackprotection_node_control, node) == false) {
-
-        prot_stack = RTEMS_CONTAINER_OF(node,Stackprotection_The_stack, Base.node); 
-        
-        if( prot_stack->current_stack == false ) {
-            Memorymanagement_Unset_entries(prot_stack->Base.stack_address, prot_stack->Base.size);
-        }
-        node =  _Chain_Immutable_next( node );
-     }
-
-}
-
-/*
-Iterate to the end of the chain and mark all the 'currnet' stack as false
-Append the current stack attribute to the end of the chain
-*/
-static void _Stackprotection_Append_chain (Chain_Control *control, Stackprotection_The_stack *stack_append_attr)
-{
-    Chain_Node *node;
-    Stackprotection_The_stack *present_stacks_attr;
-
-    if(_Chain_Is_empty(&_Stackprotection_node_control) == true ) {
-
-    _Chain_Initialize_one(&_Stackprotection_node_control, &stack_append_attr->Base.node);
-    } else {
-        _Chain_Append_unprotected(&_Stackprotection_node_control, &stack_append_attr->Base.node);
+    if( thread_stack != NULL ) {
+        thread_stack->Base.access_flags = READ_WRITE_CACHED;
+        thread_stack->Base.size = stack_size;
+        thread_stack->Base.stack_address = stack_address;
     }
 }
 
-void _Stackprotection_Allocate_attr(uintptr_t  stack_address, size_t size, uintptr_t  page_table_base)
-{
-    Stackprotection_The_stack *prot_stack;
-    
-/*This field will be refactored and score objects will be used for dynamic allocation*/
-    prot_stack = malloc(sizeof(Stackprotection_The_stack));
-
-    if(prot_stack != NULL) {
-    prot_stack->Base.stack_address = stack_address;
-    prot_stack->Base.size = size;
-    prot_stack->Base.page_table_base = page_table_base;
-    prot_stack->Base.access_flags = READ_WRITE_CACHED;
-    prot_stack->current_stack = true;
-    }
-
-    /*
-    Add the attribute field to the end of the chain, remove the memory entries of
-    previously allocated stack and set the memory entry of the currnet stack.
-    */
-   _Stackprotection_Append_chain(&_Stackprotection_node_control, prot_stack );
-    Memorymanagement_Set_entries(stack_address, size, READ_WRITE_CACHED);
-    
-}
-
-Stackprotection_The_stack *_Stackprotection_Context_initialize(void)
-{
-    Chain_Node *node;
-    Stackprotection_The_stack *prot_stack;
-
-    if(   _Chain_Is_empty(&_Stackprotection_node_control) == false ) {
-        node = _Chain_First( &_Stackprotection_node_control );
-
-        while( _Chain_Is_tail(&_Stackprotection_node_control, node ) == false) {
-            prot_stack = RTEMS_CONTAINER_OF( node, Stackprotection_The_stack, Base.node);
-
-            if(prot_stack->current_stack == true) {
-                return prot_stack;
-            } else {
-                node = _Chain_Immutable_next( node );
-            }
-        }
-    }
-
-    return prot_stack;
-}
-
-void _Stackprotection_Context_switch(Stackprotection_The_stack *executing_stack, Stackprotection_The_stack *heir_stack)
+void _Stackprotection_Context_switch(Stackprotection_Stack *executing_stack, Stackprotection_Stack *heir_stack)
 {
     void *stack_address;
     size_t  size;
@@ -135,80 +61,50 @@ void _Stackprotection_Context_switch(Stackprotection_The_stack *executing_stack,
     Chain_Control *shared_node_control;
     Stackprotection_Shared_stack *shared_stack;
 
+
     shared_node_control = &executing_stack->shared_node_control;
 
-     /*
-      Remove the stacks shared with the current stack by iterating the chain
-     */
     if( executing_stack != NULL) {
-
-    stack_address = executing_stack->Base.stack_address;
-    size = executing_stack->Base.size;
-
-        if(executing_stack->current_stack == true) {
-            executing_stack->current_stack = false;
-            Memorymanagement_Unset_entries(stack_address, size);
-            /**
-             * Take care of the shared stacks(if any).
-             */
-            if( _Chain_Is_empty( shared_node_control ) == false) {
-                node = _Chain_First( shared_node_control );
+        stack_address = executing_stack->Base.stack_address;
+        size = executing_stack->Base.size;
     
-                while (_Chain_Is_tail( shared_node_control, node ) == false) {
-                    shared_stack = RTEMS_CONTAINER_OF( node, Stackprotection_Shared_stack, Base.node);
-                    Memorymanagement_Unset_entries( shared_stack->Base.stack_address, shared_stack->Base.size );
-                }
-            }
-        }
+       _Memory_protection_Unset_entries(stack_address, size);
     }
     
     _Stackprotection_Context_restore(heir_stack);
 }
 
-void _Stackprotection_Context_restore(Stackprotection_The_stack *heir_stack)
+void _Stackprotection_Context_restore(Stackprotection_Stack *heir_stack)
 {
     void *stack_address;
     size_t  size;
     Chain_Node *node;
     Memorymanagement_flags flags;
     Chain_Control *shared_node_control;
-    Stackprotection_The_stack *present_stacks_attr;
     Stackprotection_Shared_stack *shared_stack;
 
     if(heir_stack != NULL) {
-             heir_stack->current_stack = true;
-             stack_address = heir_stack->Base.stack_address;
-             size = heir_stack->Base.size;
-             flags = heir_stack->Base.access_flags;
-             Memorymanagement_Set_entries(stack_address, size, flags);
-             /**
-              * Take care of the shared stacks (if any).
-            `*/
-            if( _Chain_Is_empty( shared_node_control ) == false) {
-                node = _Chain_First( shared_node_control );
-    
-                while (_Chain_Is_tail( shared_node_control, node ) == false) {
-                    shared_stack = RTEMS_CONTAINER_OF( node, Stackprotection_Shared_stack, Base.node);
-                    flags = shared_stack->Base.access_flags;
-                    stack_address = shared_stack->Base.stack_address;
-                    size = shared_stack->Base.size;
-                    Memorymanagement_Set_entries( stack_address, size, flags );
-                }
-            }
+        stack_address = heir_stack->Base.stack_address;
+        size = heir_stack->Base.size;
+        flags = heir_stack->Base.access_flags;
+        _Memory_protection_Set_entries(stack_address, size, flags);
     }
-#if 0
-      node = _Chain_First(&_Stackprotection_node_control);
-    /** Iterate through the chain and unset memory entries of all the
-     *  previous thread-stacks 
-    */
-    while(_Chain_Is_tail(&_Stackprotection_node_control,node) == false) {
-            
-            present_stacks_attr = RTEMS_CONTAINER_OF(node, Stackprotection_The_stack, Base.node);
+}
 
-            if(present_stacks_attr->current_stack == true && present_stacks_attr != heir_stack) 
-            present_stacks_attr->current_stack = false;  
-            Memorymanagement_Unset_entries(present_stacks_attr->Base.stack_address, present_stacks_attr->Base.size);
-            node = _Chain_Immutable_next( node );   
+void _Stackprotection_Set_address_to_name(uintptr_t stack_address, Stackprotection_Stack_name *name_block)
+{
+    if( stack_address != NULL ) {
+        name_block->name = STACK_ADDRESS_NAME(stack_address);
+        name_block->stack_address = stack_address;
     }
-#endif   
+}
+
+char *_Stackprotection_Get_address_to_name(uintptr_t stack_address, Stackprotection_Stack_name *name_block)
+{
+    
+    if(stack_address != NULL) {
+        if(name_block->stack_address == stack_address) {
+            return name_block->name;
+        }
+    }
 }
