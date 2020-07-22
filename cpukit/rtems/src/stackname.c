@@ -3,10 +3,9 @@
 /**
  * @file
  *
- * @ingroup RTEMSScoreMemorymanagement
+ * @ingroup 
  *
- * @brief This file provodes APIs for high-level memory management
- * 
+ * @brief RTEMS Stack name
  */
 
 /*
@@ -34,42 +33,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _RTEMS_SCORE_MEMORYMANAGEMENT_H
-#define _RTEMS_SCORE_MEMORYMANAGEMENT_H
-
-#include <rtems/score/basedefs.h>
-
-#ifdef __cplusplus
-extern "C" {
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
 
-#define NO_ACCESS 0x00
-#define READ_ONLY 0x01
-#define READ_WRITE 0x02
-#define MEMORY_CACHED 0x04
+#include <string.h>
+#include <rtems/score/objectimpl.h>
+#include <rtems/score/thread.h>
 
-/**
- * @brief Define the memory access permission for the specified memory region
- * 
- * @param begin_addr Beginning of the memory region
- * @param size Size of the memory region
- * @param flag Memory access flag
- * 
+/*
+ * Address of the required stack
  */
-void _Memory_protection_Set_entries(uintptr_t begin_addr, size_t size, uint32_t flag);
+void *address;
 
-/**
- * @brief Unset the memory access permission for the specified memory region
- * This operation implicitly sets the specified memory region with 'NO_ACCESS'
- * flag.
- * 
- * @param begin_addr Begining of the memory region
- * @param size Size of the memory region
- */
-void _Memory_protection_Unset_entries(uintptr_t begin_addr, size_t size);
+static bool stack_address_get_visitor(Thread_Control *the_thread, void *arg)
+{
+    char* name;
 
-#ifdef __cplusplus
+    name = arg;
+
+//#if defined (USE_THREAD_STACK_PROTECTION)
+    if(name != NULL) {
+        if ( strcmp(name, the_thread->the_stack.name) == 0 ) {
+             address = the_thread->the_stack.Base.stack_address;  
+             return true;
+        }
+    }
+//#endif
 }
-#endif
 
+void *rtems_stack_address_get( char* stack_name ) 
+{  
+#if defined (USE_THREAD_STACK_PROTECTION)
+    rtems_task_iterate( stack_name_set_visitor, stack_address);
 #endif
+}

@@ -33,6 +33,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
  * POSSIBILITY OF SUCH DAMAGE.
  * 
+ *  TO-DO - MERGE WITH stack.h
+ * 
  */
 
 #ifndef _RTEMS_SCORE_STACKPROTECTION_H
@@ -42,8 +44,9 @@
   #include <rtems/asm.h>
 #else
   #include <rtems/score/basedefs.h>
-  #include <rtems/score/memorymanagement.h>
   #include <rtems/score/chainimpl.h>
+  #include <rtems/score/memorymanagement.h>
+  #include <rtems/score/stack.h>
 #endif
 
 #ifdef __cplusplus
@@ -64,7 +67,7 @@ typedef struct
   /** This is the pointer to the page table base */
   uintptr_t      page_table_base;
   /**Memory flag for the alllocated/shared stack */
-  Memorymanagement_flags  access_flags;
+  uint32_t  access_flags;
 } Stackprotection_Attr;
 
 /**
@@ -89,20 +92,30 @@ typedef struct
    * in question
    */
   Stackprotection_Shared_stack  *shared_stacks; 
+  /*
+   * Name of the thread-stack
+   */
+  char *name;
   /** 
   * The chain control for tracking the shared stacks with the thread-stack in 
   * question.
   */
-  Chain_Control shared_node_control;
+  Chain_Control shared_stack_control;
 } Stackprotection_Stack;
 
 /**
  * @brief Share a stack with another stack.
  * 
- * @param shared_stack The stack to be shared
- * @param target_stack The stack with which to share
+ * @param shared_address The stack to be shared
+ * @param target_address The stack with which to share
+ * @param flags The memory-access flag of the shared stack address
  */
-void _Stackprotection_Share_stack(Stackprotection_Stack *shared_stack, Stackprotection_Stack* target_stack);
+void _Stackprotection_Share_stack(
+  Stackprotection_Stack *shared_stack,
+  Stackprotection_Stack *target_stack, 
+  size_t shared_stack_size,
+  uint32_t flag 
+);
 
 /**
  * @brief Initialize the protected-stack attributes of a thread

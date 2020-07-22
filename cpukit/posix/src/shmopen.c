@@ -26,6 +26,8 @@
 #include <rtems/posix/shmimpl.h>
 #include <rtems/score/wkspace.h>
 #include <rtems/sysinit.h>
+#include <rtems/stackname.h>
+#include <string.h>
 
 static const rtems_filesystem_file_handlers_r shm_handlers;
 

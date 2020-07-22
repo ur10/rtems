@@ -3,10 +3,6 @@
 #include <libcpu/arm-cp15.h>
 #include <rtems.h>
 
-#ifdef USE_THREAD_STACK_PROTECTION
-  #define ARM_MMU_USE_SMALL_PAGES
-#endif
-
 static uint32_t translate_flags(uint32_t attr_flags)
 {
   uint32_t flags;
@@ -70,7 +66,7 @@ void _Memory_protection_Unset_entries(uintptr_t begin, size_t size)
   rtems_interrupt_level irq_level;
 
   end = begin + size;
-  access_flags = translate_flags(NO_ACCESS);
+  access_flags = translate_flags(READ_ONLY);
 
    /**
      *  The ARM reference manual instructs to disable all the interrupts before
