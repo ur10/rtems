@@ -102,8 +102,11 @@ typedef struct
 
 typedef struct 
 {
+<<<<<<< HEAD
   /** The chain node for tracking names of the allocated stack*/
   Chain_Node node;
+=======
+>>>>>>> d2a510323b... Stack address to name mechanism
   /** The address of the allocated stack */
   uintptr_t stack_address;
   /** Name of the allocated stack */
@@ -163,11 +166,12 @@ void _Stackprotection_Set_address_to_name(uintptr_t stack_address, Stackprotecti
  * @brief Get the name of the provided stack address.
  * 
  * @param stack_address The address of the given stack.
+ * @param name_block Pointer to the stack-name control block
  * 
  * @retval NULL @a stack_address is not present in the chain. 
  * @retval name @a stack_address name. 
 */
-char *_Stackprotection_Get_address_to_name(uintptr_t stack_address);
+char *_Stackprotection_Get_address_to_name(uintptr_t stack_address, Stackprotection_Stack_name *name_block);
 
 #endif /* !defined ( ASM ) */
 
