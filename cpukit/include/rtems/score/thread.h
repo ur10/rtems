@@ -836,10 +836,14 @@ struct _Thread_Control {
 
   /** This field contains the context of this thread. */
   Context_Control                       Registers;
-
+  
+#if defined (USE_THREAD_STACK_PROTECTION)
   /** This is the control block of the protected stack. */
   Stackprotection_Stack            the_stack;
   
+  /** This is the control block for handling stack address names. */
+  Stackprotection_Stack_name      name_block;
+#endif  
 #if ( CPU_HARDWARE_FP == TRUE ) || ( CPU_SOFTWARE_FP == TRUE )
   /** This field points to the floating point context for this thread.
    *  If NULL, the thread is integer only.

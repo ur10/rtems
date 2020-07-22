@@ -97,6 +97,18 @@ typedef struct
 } Stackprotection_Stack;
 
 /**
+ * The following defines the control block for handling names of stack-address 
+ */
+
+typedef struct 
+{
+  /** The address of the allocated stack */
+  uintptr_t stack_address;
+  /** Name of the allocated stack */
+  char *name;
+}Stackprotection_Stack_name;
+
+/**
  * @brief Share a stack with another stack.
  * 
  * @param shared_stack The stack to be shared
@@ -134,6 +146,27 @@ void _Stackprotection_Context_switch(Stackprotection_Stack *executing_stack, Sta
  * @param Control block of the restored stack
  */ 
 void _Stackprotection_Context_restore(Stackprotection_Stack *heir_stack);
+
+/**
+ * @brief Provide name to the address of the given stack and add it to the 
+ * chain structure for future extraction.
+ * 
+ * @param stack_address The address of the given stack.
+ * @param name_block Pointer to the stack-name control block
+ * 
+*/
+void _Stackprotection_Set_address_to_name(uintptr_t stack_address, Stackprotection_Stack_name *name_block);
+
+/**
+ * @brief Get the name of the provided stack address.
+ * 
+ * @param stack_address The address of the given stack.
+ * @param name_block Pointer to the stack-name control block
+ * 
+ * @retval NULL @a stack_address is not present in the chain. 
+ * @retval name @a stack_address name. 
+*/
+char *_Stackprotection_Get_address_to_name(uintptr_t stack_address, Stackprotection_Stack_name *name_block);
 
 #endif /* !defined ( ASM ) */
 

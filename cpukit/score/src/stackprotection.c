@@ -39,6 +39,10 @@
 
 #include <rtems/score/stackprotection.h>
 
+Chain_Control stack_name_control = CHAIN_INITIALIZER_EMPTY(stack_name_control);
+
+#define STACK_ADDRESS_NAME(stack_address)   "/taskfs/"#stack_address
+
 void _Stackprotection_Thread_initialize(Stackprotection_Stack *thread_stack, uintptr_t stack_address, size_t stack_size)
 {
 
@@ -84,5 +88,23 @@ void _Stackprotection_Context_restore(Stackprotection_Stack *heir_stack)
         size = heir_stack->Base.size;
         flags = heir_stack->Base.access_flags;
         _Memory_protection_Set_entries(stack_address, size, flags);
+    }
+}
+
+void _Stackprotection_Set_address_to_name(uintptr_t stack_address, Stackprotection_Stack_name *name_block)
+{
+    if( stack_address != NULL ) {
+        name_block->name = STACK_ADDRESS_NAME(stack_address);
+        name_block->stack_address = stack_address;
+    }
+}
+
+char *_Stackprotection_Get_address_to_name(uintptr_t stack_address, Stackprotection_Stack_name *name_block)
+{
+    
+    if(stack_address != NULL) {
+        if(name_block->stack_address == stack_address) {
+            return name_block->name;
+        }
     }
 }

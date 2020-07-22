@@ -162,6 +162,7 @@ include_rtems_HEADERS += include/rtems/shellconfig.h
 include_rtems_HEADERS += include/rtems/sparse-disk.h
 include_rtems_HEADERS += include/rtems/spurious.h
 include_rtems_HEADERS += include/rtems/stackchk.h
+include_rtems_HEADERS += include/rtems/stackname.h
 include_rtems_HEADERS += include/rtems/status-checks.h
 include_rtems_HEADERS += include/rtems/stdio-redirect.h
 include_rtems_HEADERS += include/rtems/stringto.h
