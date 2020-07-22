@@ -74,6 +74,9 @@ librtemsbsp_a_SOURCES += ../../../../../../bsps/arm/xilinx-zynq/i2c/cadence-i2c.
 # Cache
 librtemsbsp_a_SOURCES += ../../../../../../bsps/arm/shared/cache/cache-l2c-310.c
 
+#MMU
+librtemsbsp_a_SOURCES += ../../../../../../bsps/arm/xilinx-zynq/mmu/bsp-set-mmu-attr.c
+
 # Start hooks
 librtemsbsp_a_SOURCES += ../../../../../../bsps/arm/xilinx-zynq/start/bspstarthooks.c
 librtemsbsp_a_SOURCES += ../../../../../../bsps/arm/xilinx-zynq/start/bspstartmmu.c
