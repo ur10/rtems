@@ -46,7 +46,12 @@
 /*
  * Address of the required stack
  */
-void *address;
+void *stack_address;
+
+/*
+ * Name of the required stack
+ */ 
+char *stack_name;
 
 static bool stack_address_get_visitor(Thread_Control *the_thread, void *arg)
 {
@@ -54,19 +59,44 @@ static bool stack_address_get_visitor(Thread_Control *the_thread, void *arg)
 
     name = arg;
 
-#if defined (USE_THREAD_STACK_PROTECTION)
+#if defined ( USE_THREAD_STACK_PROTECTION )
     if(name != NULL) {
         if ( strcmp(name, the_thread->the_stack.name) == 0 ) {
-             address = the_thread->the_stack.Base.stack_address;  
+             stack_address = the_thread->the_stack.Base.stack_address;  
              return true;
         }
     }
 #endif
 }
 
-void *rtems_stack_address_get( char* stack_name ) 
+static bool stack_name_get_visitor(Thread_Control *the_thread, void *arg)
+{
+    void* address;
+
+    address = arg;
+
+#if defined ( USE_THREAD_STACK_PROTECTION )
+ if( address != NULL) {
+    if ( address == the_thread->the_stack.Base.stack_address ) {
+         stack_name = the_thread->the_stack.name;  
+         return true;
+    }
+ }
+#endif
+}
+
+void *rtems_stack_address_get( char* name ) 
 {  
 #if defined (USE_THREAD_STACK_PROTECTION)
-    rtems_task_iterate( stack_name_set_visitor, stack_address);
+ rtems_task_iterate( stack_name_set_visitor, name );
 #endif
+ return stack_address;
+}
+
+void *rtems_stack_name_get ( void* address )
+{
+#if defined ( USE_THREAD_STACK_PROTECTION )
+ rtems_task_iterate( stack_name_set_visitor, address );
+#endif
+return stack_name;
 }
