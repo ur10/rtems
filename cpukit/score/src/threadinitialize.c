@@ -27,8 +27,12 @@
 #include <rtems/score/watchdogimpl.h>
 #include <rtems/config.h>
 
-#define STR( s )  #s  
-#define STACK_ADDRESS_NAME( stack_address )   "/taskfs/"STR( stack_address )
+#define USE_THREAD_STACK_PROTECTION
+
+#if defined ( USE_THREAD_STACK_PROTECTION )
+  #define STR( s )  #s  
+  #define STACK_ADDRESS_NAME( stack_address )   "/taskfs/"STR( stack_address )
+#endif
 
 bool _Thread_Initialize(
   Thread_Information         *information,
@@ -135,6 +139,7 @@ bool _Thread_Initialize(
   );
   _Thread_queue_Heads_initialize( the_thread->Wait.spare_heads );
 
+#if defined ( USE_THREAD_STACK_PROTECTION )
   /*
    *  General initialization
    */
@@ -144,6 +149,7 @@ bool _Thread_Initialize(
   the_thread->Start.is_preemptible   = config->is_preemptible;
   the_thread->Start.budget_algorithm = config->budget_algorithm;
   the_thread->Start.budget_callout   = config->budget_callout;
+#endif
 
   _Thread_Timer_initialize( &the_thread->Timer, cpu );
 

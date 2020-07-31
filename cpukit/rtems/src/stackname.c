@@ -41,6 +41,8 @@
 #include <rtems/score/objectimpl.h>
 #include <rtems/score/thread.h>
 
+#define USE_THREAD_STACK_PRTOECTION
+
 /*
  * Address of the required stack
  */
@@ -52,14 +54,14 @@ static bool stack_address_get_visitor(Thread_Control *the_thread, void *arg)
 
     name = arg;
 
-//#if defined (USE_THREAD_STACK_PROTECTION)
+#if defined (USE_THREAD_STACK_PROTECTION)
     if(name != NULL) {
         if ( strcmp(name, the_thread->the_stack.name) == 0 ) {
              address = the_thread->the_stack.Base.stack_address;  
              return true;
         }
     }
-//#endif
+#endif
 }
 
 void *rtems_stack_address_get( char* stack_name ) 

@@ -39,21 +39,6 @@
 
 #include <rtems/score/stackprotection.h>
 
-
-
-void _Stackprotection_Thread_initialize(Stackprotection_Stack *thread_stack, uintptr_t stack_address, size_t stack_size)
-{
-
-    if( thread_stack != NULL ) {
-        thread_stack->Base.access_flags = ( READ_WRITE |  MEMORY_CACHED );
-        thread_stack->Base.size = stack_size;
-        thread_stack->Base.stack_address = stack_address;
-        /*
-         * TO-DO - Integrate stack naming here.  
-         */
-    }
-}
-
 void _Stackprotection_Context_switch(Stackprotection_Stack *executing_stack, Stackprotection_Stack *heir_stack)
 {
    

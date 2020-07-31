@@ -26,9 +26,11 @@
 #include <rtems/score/basedefs.h>
 #include <rtems/score/heapimpl.h>
 #include <rtems/score/wkspace.h>
-#include <rtems/score/memorymanagement.h>
+#include <rtems/score/memoryprotection.h>
 
 #include <bsp/linker-symbols.h>
+
+#define USE_THREAD_STACK_PROTECTION
 
 static Heap_Control bsp_stack_heap;
 

@@ -45,7 +45,7 @@
 #else
   #include <rtems/score/basedefs.h>
   #include <rtems/score/chainimpl.h>
-  #include <rtems/score/memorymanagement.h>
+  #include <rtems/score/memoryprotection.h>
   #include <rtems/score/stack.h>
 #endif
 
@@ -60,11 +60,11 @@ extern "C" {
  */
 typedef struct
 {  
-  /** This is the stack address */
+  /** The stack address */
   uintptr_t        stack_address;
   /** This is the stack size */
   size_t        size;
-  /** This is the pointer to the page table base */
+  /** The pointer to the page table base */
   uintptr_t      page_table_base;
   /**Memory flag for the alllocated/shared stack */
   uint32_t  access_flags;
@@ -86,9 +86,9 @@ typedef struct
  */
 typedef struct
 { 
-  /** This is the attribute of an allocated stack*/
+  /** The attribute of an allocated stack*/
   Stackprotection_Attr    Base;
-  /** This is the pointer to the attributes of a stack shared with the stack 
+  /** The pointer to the attributes of a stack shared with the stack 
    * in question
    */
   Stackprotection_Shared_stack  *shared_stacks; 
@@ -104,7 +104,7 @@ typedef struct
 } Stackprotection_Stack;
 
 /**
- * @brief Share a stack with another stack.
+ * @brief Share the stack of a stack with the specified thread.
  * 
  * @param shared_address The stack to be shared
  * @param target_address The stack with which to share
@@ -124,7 +124,11 @@ void _Stackprotection_Share_stack(
  * @param stack_address Address of the stack
  * @param size Size of the stack
  */ 
-void _Stackprotection_Thread_initialize(Stackprotection_Stack *thread_stack, uintptr_t stack_address, size_t);
+void _Stackprotection_Thread_initialize(
+  Stackprotection_Stack *thread_stack,
+  uintptr_t stack_address,
+  size_t
+);
 
 /**
  * @brief Swap out the executing protected stack from the page table during 
@@ -135,7 +139,10 @@ void _Stackprotection_Thread_initialize(Stackprotection_Stack *thread_stack, uin
  * 
  * @param excuting_stack Control block of the executing stack
  */
-void _Stackprotection_Context_switch(Stackprotection_Stack *executing_stack, Stackprotection_Stack *heir_stack);
+void _Stackprotection_Context_switch(
+  Stackprotection_Stack *executing_stack,
+  Stackprotection_Stack *heir_stack
+);
 
 /**
  * @brief Swap the restored protected stack  in the page table during context
@@ -146,7 +153,9 @@ void _Stackprotection_Context_switch(Stackprotection_Stack *executing_stack, Sta
  * 
  * @param Control block of the restored stack
  */ 
-void _Stackprotection_Context_restore(Stackprotection_Stack *heir_stack);
+void _Stackprotection_Context_restore(
+  Stackprotection_Stack *heir_stack
+);
 
 #endif /* !defined ( ASM ) */
 

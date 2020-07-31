@@ -26,15 +26,15 @@
 
 #include "rtems/libio_.h"
 
-#include <rtems/score/memorymanagement.h>
 #include <rtems/posix/mmanimpl.h>
 #include <rtems/posix/shmimpl.h>
 #include <rtems/score/stackprotection.h>
 
-//#if defined(USE_THREAD_STACK_PROTECTION)
+#define USE_THREAD_STACK_PROTECTION
 
-Stackprotection_Stack *target_stack;
-Stackprotection_Stack *shared_stack;
+#if defined(USE_THREAD_STACK_PROTECTION)
+  Stackprotection_Stack *target_stack;
+  Stackprotection_Stack *shared_stack;
 
 static uint32_t mmap_flag_translate(int prot)
 {
@@ -76,7 +76,7 @@ static bool get_shared_thread_visitor(Thread_Control *the_thread, void* arg)
     return true;
   }
 }
-//#else
+#endif
 
 /**
  * mmap chain of mappings.
@@ -98,11 +98,10 @@ void *mmap(
   bool            map_private;
   bool            is_shared_shm;
   int             err;
-//#if defined (USE_THREAD_STACK_PROTECTION)
- /*TODO - bit field implementation*/
+#if defined (USE_THREAD_STACK_PROTECTION)
   uint32_t memory_flags;
   uintptr_t shared_stack_address;
-//#endif
+#endif
   map_fixed = (flags & MAP_FIXED) == MAP_FIXED;
   map_anonymous = (flags & MAP_ANON) == MAP_ANON;
   map_shared = (flags & MAP_SHARED) == MAP_SHARED;
@@ -116,7 +115,7 @@ void *mmap(
     errno = EINVAL;
     return MAP_FAILED;
   }
-//#if defined (USE_THREAD_STACK_PROTECTION)
+#if defined (USE_THREAD_STACK_PROTECTION)
 /*
  * We cannot share a part of the stack, hence, offset cannot be zer
  */
@@ -124,7 +123,7 @@ void *mmap(
     errno = EINVAL;
     return MAP_FAILED;
   }
-//#endif
+#endif
   /*
    * We can provide read, write and execute because the memory in RTEMS does
    * not normally have protections but we cannot hide access to memory. For
@@ -137,7 +136,7 @@ void *mmap(
     return MAP_FAILED;
   }
 
-//#if defined (USE_THREAD_STACK_PROTECTION)
+#if defined (USE_THREAD_STACK_PROTECTION)
 /**
  * MAP_ANONYMOUS, MAP_PRIVATE and MAP_FIXED are not supported for thread-stack protection. 
  * We can only have MAP_SHARED.
@@ -146,7 +145,7 @@ void *mmap(
     errno = EINVAL;
     return MAP_FAILED;
   }
-//#else
+#else
   /*
    * We can not normally provide restriction of write access. Reject any
    * attempt to map without write permission, since we are not able to
@@ -257,8 +256,8 @@ void *mmap(
       return MAP_FAILED;
     }
   }
-//#endif
-//#if defined(USE_THREAD_STACK_PROTECTION)
+#endif
+#if defined(USE_THREAD_STACK_PROTECTION)
   memory_flags = mmap_flag_translate( prot );
 
 /**
@@ -289,7 +288,7 @@ void *mmap(
  * Share the stack address od the sharing thread with the target thread.
  */
   _Stackprotection_Share_stack(addr, shared_stack_address, len, memory_flags);
-//#else
+#else
   /* Create the mapping */
   mapping = malloc( sizeof( mmap_mapping ));
   if ( !mapping ) {
@@ -403,5 +402,5 @@ void *mmap(
   mmap_mappings_lock_release( );
 
   return mapping->addr;
-//#endif
+#endif
 }

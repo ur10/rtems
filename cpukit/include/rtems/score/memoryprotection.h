@@ -3,9 +3,9 @@
 /**
  * @file
  *
- * @ingroup RTEMSScoreMemorymanagement
+ * @ingroup RTEMSScoreMemoryprotection
  *
- * @brief This file provodes APIs for high-level memory management
+ * @brief This file provodes APIs for high-level memory protection
  * 
  */
 
@@ -34,8 +34,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _RTEMS_SCORE_MEMORYMANAGEMENT_H
-#define _RTEMS_SCORE_MEMORYMANAGEMENT_H
+#ifndef _RTEMS_SCORE_MEMORYPROTECTION_H
+#define _RTEMS_SCORE_MEMORYPROTECTION_H
 
 #include <rtems/score/basedefs.h>
 
@@ -56,7 +56,11 @@ extern "C" {
  * @param flag Memory access flag
  * 
  */
-void _Memory_protection_Set_entries(uintptr_t begin_addr, size_t size, uint32_t flag);
+void _Memory_protection_Set_entries(
+  uintptr_t begin_addr,
+  size_t size,
+  uint32_t flag
+);
 
 /**
  * @brief Unset the memory access permission for the specified memory region
@@ -66,7 +70,10 @@ void _Memory_protection_Set_entries(uintptr_t begin_addr, size_t size, uint32_t 
  * @param begin_addr Begining of the memory region
  * @param size Size of the memory region
  */
-void _Memory_protection_Unset_entries(uintptr_t begin_addr, size_t size);
+void _Memory_protection_Unset_entries(
+  uintptr_t begin_addr,
+  size_t size
+);
 
 #ifdef __cplusplus
 }
