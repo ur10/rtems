@@ -146,6 +146,15 @@ ticker_CPPFLAGS = $(AM_CPPFLAGS) $(TEST_FLAGS_ticker) \
 	$(support_includes)
 endif
 
+if TEST_thread_stack_protection
+samples += thread_stack_protection
+sample_screens += thread_stack_protection/thread_stack_protection.scn
+sample_docs += thread_stack_protection/thread_stack_protection.doc
+thread_stack_protection_SOURCES = thread_stack_protection/init.c
+thread_stack_protection_CPPFLAGS = $(AM_CPPFLAGS) $(TEST_FLAGS_thread_stack_protection) \
+	$(support_includes)
+endif
+
 if TEST_unlimited
 samples += unlimited
 sample_screens += unlimited/unlimited.scn

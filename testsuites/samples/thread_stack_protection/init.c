@@ -6,7 +6,7 @@
 #include <tmacros.h>
 #include <pthread.h>
 #include <rtems/score/memoryprotection.h>
-
+#include <rtems/score/thread.h>
 const char rtems_test_name[] = " THREAD STACK PROTECTION ";
 
 void* Test_routine( void* arg )
@@ -24,7 +24,7 @@ void *POSIX_Init( void *argument )
   pthread_t id2;
   pthread_attr_t attr1;  
   pthread_attr_t attr2;
-
+  Thread_Control Control;
   TEST_BEGIN();
  
  /*
@@ -32,7 +32,7 @@ void *POSIX_Init( void *argument )
   */
   stack_size1 = 8192;
   stack_size2 = 8192;
-
+  printf("%d %d \n",sizeof(Control.Post_switch_actions), sizeof(Control.Start.tls_area));
   /*
    * We allocate page-aligned memory of the stack  from the application.
    */
@@ -53,13 +53,14 @@ void *POSIX_Init( void *argument )
  /*
   * We set the memory attributes of the stack from the application.
   */
-  _Memory_protection_Set_entries( stack_addr1, stack_size1, READ_ONLY | MEMORY_CACHED );
-  _Memory_protection_Set_entries( stack_addr2, stack_size2, READ_ONLY | MEMORY_CACHED );
+  _Memory_protection_Set_entries( stack_addr1, stack_size1, RTEMS_READ_ONLY | RTEMS_MEMORY_CACHED );
+  _Memory_protection_Set_entries( stack_addr2, stack_size2, RTEMS_READ_ONLY | RTEMS_MEMORY_CACHED );
 
   pthread_join( id1, NULL );
   /*
    * Write to the stack address of thread1 after it has been switched out.
    */ 
+  printf("Here\n");
   memset( stack_addr1, 0, stack_size1 );
 
   pthread_join( id2, NULL );
@@ -86,4 +87,10 @@ void *POSIX_Init( void *argument )
 
 #define CONFIGURE_POSIX_INIT_THREAD_TABLE
 
+#define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
+#define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate
+#define CONFIGURE_TASK_STACK_DEALLOCATOR     bsp_stack_free
+
+#include <bsp/stackalloc.h>
+#define CONFIGURE_INIT
 #include <rtems/confdefs.h>

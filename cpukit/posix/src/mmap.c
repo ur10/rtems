@@ -46,10 +46,10 @@ static uint32_t mmap_flag_translate(int prot)
   prot_write = (prot_write & PROT_WRITE) == PROT_WRITE;
  
   if(prot_read){
-    memory_flag |= ( READ_ONLY| MEMORY_CACHED );
+    memory_flag |= ( RTEMS_READ_ONLY| RTEMS_MEMORY_CACHED );
   }
   if(prot_write) {
-    memory_flag |= ( READ_WRITE | MEMORY_CACHED );
+    memory_flag |= ( RTEMS_READ_WRITE | RTEMS_MEMORY_CACHED );
   }
 
   return memory_flag;
@@ -266,7 +266,11 @@ void *mmap(
     }
  
   err = (*iop->pathinfo.handlers->mmap_h)(
-        iop, &shared_stack_address, len, prot, off );
+        iop,
+        &shared_stack_address,
+        len,
+        prot,
+        off );
   
   if(err != 0) {
     return MAP_FAILED;

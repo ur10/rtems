@@ -41,11 +41,41 @@ extern "C" {
  * @{
  */
 
+#define USE_THREAD_STACK_PROTECTION
 /**
  *  The following constant defines the minimum stack size which every
  *  thread must exceed.
  */
 #define STACK_MINIMUM_SIZE  CPU_STACK_MINIMUM_SIZE
+
+/**
+ * The number of stacks that can be shared with a thread.
+ */ 
+#define SHARED_STACK_NUMBER 8
+
+#if defined ( USE_THREAD_STACK_PROTECTION )
+/**
+ * The following defines the attributes of a protected stack
+ */
+typedef struct
+{
+  /** The pointer to the page table base */
+  uintptr_t      page_table_base;
+  /**Memory flag for the alllocated/shared stack */
+  uint32_t  access_flags;
+} Stack_Protection_attr;
+
+
+/**
+ * The following defines the control block  of a shared stack. Each stack can have
+ * different sharing attributes
+ */
+typedef struct
+{
+  /** This is the attribute of a shared stack*/
+  Stack_Protection_attr    Base;
+} Stack_Shared_attr;
+#endif
 
 /**
  *  The following defines the control block used to manage each stack.
@@ -55,6 +85,16 @@ typedef struct {
   size_t      size;
   /** This is the low memory address of stack. */
   void       *area;
+#if defined (USE_THREAD_STACK_PROTECTION)
+   /** The attribute of a protected stack */
+  Stack_Protection_attr    Base;
+  /** The pointer to the attributes of a stack shared with the stack 
+   * in question
+   */
+  Stack_Shared_attr  stack_sharing_attr;
+
+  Stack_Shared_attr shared_stacks[SHARED_STACK_NUMBER];
+#endif
 }   Stack_Control;
 
 /**

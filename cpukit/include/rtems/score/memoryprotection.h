@@ -43,10 +43,11 @@
 extern "C" {
 #endif
 
-#define NO_ACCESS 0x00
-#define READ_ONLY 0x01
-#define READ_WRITE 0x02
-#define MEMORY_CACHED 0x04
+#define RTEMS_NO_ACCESS 0x00
+#define RTEMS_READ_ONLY 0x01
+#define RTEMS_WRITE_ONLY 0x02
+#define RTEMS_READ_WRITE ( RTEMS_READ_ONLY | RTEMS_WRITE_ONLY )
+#define RTEMS_MEMORY_CACHED 0x04
 
 /**
  * @brief Define the memory access permission for the specified memory region

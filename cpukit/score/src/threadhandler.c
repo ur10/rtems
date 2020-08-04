@@ -94,7 +94,7 @@ void _Thread_Handler( void )
   /*
    * Restore the shared thread-stacks
    */
-  _Stackprotection_Context_restore( &executing->the_stack );
+ // _Stackprotection_Context_restore( &executing->the_stack );
 
   /*
    * Initialize the floating point context because we do not come

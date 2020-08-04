@@ -125,12 +125,7 @@ bool _Thread_Initialize(
   /**
    * Initialize the protected stack attributes.
    */
-   
-   the_thread->the_stack.Base.stack_address = stack_area;
-   the_thread->the_stack.Base.size = stack_size;
-   the_thread->the_stack.Base.access_flags = ( READ_WRITE | MEMORY_CACHED );
-   the_thread->the_stack.name = STACK_ADDRESS_NAME( stack_area );
-
+   the_thread->Start.Initial_stack.Base.access_flags = RTEMS_READ_WRITE | RTEMS_MEMORY_CACHED;
   /*
    *  Get thread queue heads
    */

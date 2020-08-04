@@ -55,7 +55,7 @@ void *bsp_stack_allocate(size_t size)
  * bsp_stack_allocate_init().
  */
   posix_memalign(&stack, 4096 , size);
-  _Memory_protection_Set_entries( stack, size, ( READ_ONLY | MEMORY_CACHED ) );
+  _Memory_protection_Set_entries( stack, size, ( RTEMS_READ_ONLY | RTEMS_MEMORY_CACHED ) );
 #else
   if (bsp_stack_heap.area_begin != 0) {
     stack = _Heap_Allocate(&bsp_stack_heap, size);

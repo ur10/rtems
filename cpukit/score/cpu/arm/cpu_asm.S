@@ -31,6 +31,8 @@
 #include "config.h"
 #endif
 
+#define USE_THREAD_STACK_PROTECTION
+
 #include <rtems/asm.h>
 
 #ifdef ARM_MULTILIB_ARCH_V4
@@ -67,7 +69,7 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	str	r3, [r0, #ARM_CONTEXT_CONTROL_ISR_DISPATCH_DISABLE]
 
 #if defined ( USE_THREAD_STACK_PROTECTION )
-   
+
 /*
  * We make a function call to set the memory attributes of the heir
  * stack and unset that of the executing stack (including shared stacks ).
@@ -80,9 +82,11 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	mov r9, r1
 	mov r10, r2
 /* Load the parameters for function call */
-	ldr r0, [r1, #112]
-	ldr r1, [r1, #116]
-	mov r2, #6
+	mov r0, r1
+	sub r0, r0,  #108
+	ldr r1, [r0]
+	ldr r0, [r0, #4]
+	mov r2, #3
 	bl _Memory_protection_Set_entries
 
 /* Restore the saved registers	 */
@@ -96,8 +100,11 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
  */
 	ldr sp, [r1, #32]
 /* Load the parameters of the function call */
-	ldr	r1, [r0, #116]
-	ldr r0, [r0, #112]
+	mov r1, r0
+	sub r0, r0,  #108
+	ldr r1, [r0]
+	ldr r0, [r0, #4]
+	mov r2, #3
 	bl  _Memory_protection_Unset_entries
 	/*
 	 * Restore the saved registers
@@ -136,26 +143,7 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 
 /* Start restoring context */
 .L_restore:
-#if defined ( USE_THREAD_STACK_PROTECTION )
- 	cmp r1, r0
- 	beq .L_memory_entries_set
 
-.L_memory_entries_set:
-/* Save the registers modified during function call */
-	mov r8, r0
-	mov r9, r1
-	mov r10, r2
-/* Load the parameters for function call */
-	ldr r0, [r1, #112]
-	ldr r1, [r1, #116]
-	mov r2, #6
-	bl _Memory_protection_Set_entries
-
-/* Restore the saved registers	 */
-	mov r0, r8
-	mov r1, r9
-	mov r2, r10
-#endif
 #if !defined(RTEMS_SMP) && defined(ARM_MULTILIB_HAS_LOAD_STORE_EXCLUSIVE)
 	clrex
 #endif
@@ -196,6 +184,26 @@ DEFINE_FUNCTION_ARM(_CPU_Context_restore)
         mov     r1, r0
 
 	GET_SELF_CPU_CONTROL	r2
+	
+#if defined ( USE_THREAD_STACK_PROTECTION )
+ 	
+	/* Save the registers modified during function call */
+	  mov r8, r0
+	  mov r9, r1
+	  mov r10, r2
+	/* Load the parameters for function call */
+	mov r1, r0
+	sub r0, r0,  #108
+	ldr r1, [r0]
+	ldr r0, [r0, #4]
+	mov r2, #3
+	  bl _Memory_protection_Set_entries
+
+	/* Restore the saved registers	 */
+	  mov r0, r8
+	  mov r1, r9
+	  mov r2, r10
+#endif	
         b       .L_restore
 
 #ifdef RTEMS_SMP

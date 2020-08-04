@@ -78,7 +78,7 @@ static bool stack_name_get_visitor(Thread_Control *the_thread, void *arg)
 #if defined ( USE_THREAD_STACK_PROTECTION )
  if( address != NULL) {
     if ( address == the_thread->the_stack.Base.stack_address ) {
-         stack_name = the_thread->the_stack.name;  
+         stack_name = the_thread->the_stack.name;
          return true;
     }
  }
@@ -86,9 +86,9 @@ static bool stack_name_get_visitor(Thread_Control *the_thread, void *arg)
 }
 
 void *rtems_stack_address_get( char* name ) 
-{  
+{
 #if defined (USE_THREAD_STACK_PROTECTION)
- rtems_task_iterate( stack_name_set_visitor, name );
+ rtems_task_iterate( stack_address_get_visitor, name );
 #endif
  return stack_address;
 }
@@ -96,7 +96,7 @@ void *rtems_stack_address_get( char* name )
 void *rtems_stack_name_get ( void* address )
 {
 #if defined ( USE_THREAD_STACK_PROTECTION )
- rtems_task_iterate( stack_name_set_visitor, address );
+ rtems_task_iterate( stack_name_get_visitor, address );
 #endif
 return stack_name;
 }
