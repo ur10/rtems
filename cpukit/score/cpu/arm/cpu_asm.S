@@ -83,7 +83,7 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	mov r10, r2
 /* Load the parameters for function call */
 	mov r0, r1
-	sub r0, r0,  #108
+	sub r0, r0,  #76
 	ldr r1, [r0]
 	ldr r0, [r0, #4]
 	mov r2, #3
@@ -103,7 +103,7 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	ldr sp, [r1, #32]
 /* Load the parameters of the function call */
 	mov r1, r0
-	sub r0, r0,  #108
+	sub r0, r0,  #76
 	ldr r1, [r0]
 	ldr r0, [r0, #4]
 	mov r2, #3
@@ -195,7 +195,7 @@ DEFINE_FUNCTION_ARM(_CPU_Context_restore)
 	  mov r10, r2
 	/* Load the parameters for function call */
 	mov r1, r0
-	sub r0, r0,  #108
+	sub r0, r0,  #76
 	ldr r1, [r0]
 	ldr r0, [r0, #4]
 	mov r2, #3
