@@ -29,14 +29,30 @@ int _POSIX_Shm_Object_create_from_workspace(
 {
 #if defined(USE_THREAD_STACK_PROTECTION)
   POSIX_Shm_Control *shm;
+  Objects_Id id;
+  Objects_Name_or_id_lookup_errors err;
+  Thread_Control *Control;
+  ISR_lock_Context lock_context;
 
   shm = RTEMS_CONTAINER_OF(shm_obj, POSIX_Shm_Control, shm_object);
   /** We assign fixed pattern of naming for thread-stacks, and treat them 
    *  accordingly.
    */
   if( strncmp(shm->Object.name.name_p, "/taskfs/", 8) == 0 ) {
-    shm_obj->handle = rtems_stack_address_get(shm->Object.name.name_p);
-    shm_obj->size = size;
+    /**
+     * Obtain the object id of the thread and then get the thread control block
+     * corresponding to that id. 
+     */
+     err = _Objects_Name_to_id_u32( &_Thread_Information.Objects, shm->Object.name.name_u32, RTEMS_LOCAL, &id );
+     if( err == OBJECTS_NAME_OR_ID_LOOKUP_SUCCESSFUL) {
+       Control = _Thread_Get(id, &lock_context );
+       shm_obj->handle = Control->Start.Initial_stack.area;
+       if( size != Control->Start.Initial_stack.size) {
+         return ENOMEM;
+       }
+     } else {
+       return ENOMEM;
+     }
   } else {
     shm_obj->handle = _Workspace_Allocate( size );
     if ( shm_obj->handle == NULL ) {

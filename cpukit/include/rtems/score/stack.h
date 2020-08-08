@@ -68,12 +68,24 @@ typedef struct
 
 /**
  * The following defines the control block  of a shared stack. Each stack can have
- * different sharing attributes
+ * different sharing attributes.
  */
 typedef struct
 {
   /** This is the attribute of a shared stack*/
   Stack_Protection_attr    Base;
+  /** This is the stack address of the sharing thread*/
+  void* shared_stack_area;
+  /** This is the stack address of the target stack. Maybe this area is not
+   * needed but this helps in selecting the target thread during stack sharing.
+   */
+  void* target_stack_area;
+  /** Stack size of the sharing thread*/
+  size_t shared_stack_size;
+ /** Error checking for valid target stack address. This is also used to
+  * distinguish between a normal mmap operation and a stack sharing operation. 
+  */
+  bool stack_shared;
 } Stack_Shared_attr;
 #endif
 
@@ -88,12 +100,10 @@ typedef struct {
 #if defined (USE_THREAD_STACK_PROTECTION)
    /** The attribute of a protected stack */
   Stack_Protection_attr    Base;
-  /** The pointer to the attributes of a stack shared with the stack 
-   * in question
-   */
-  Stack_Shared_attr  stack_sharing_attr;
 
-  Stack_Shared_attr shared_stacks[SHARED_STACK_NUMBER];
+  Stack_Shared_attr *shared_stacks[SHARED_STACK_NUMBER];
+
+  uint32_t shared_stacks_count;
 #endif
 }   Stack_Control;
 

@@ -14,6 +14,7 @@
 #include <rtems.h>
 #include <tmacros.h>
 #include <rtems/score/memoryprotection.h>
+#include <rtems/score/stack.h>
 
 const char rtems_test_name[] = "HELLO WORLD";
 
@@ -26,7 +27,10 @@ static rtems_task Init(
 )
 {
   rtems_print_printer_fprintf_putc(&rtems_test_printer);
+  Stack_Control stack;
+  
   TEST_BEGIN();
+  
   posix_memalign( &addr1, 4096, 8192);
   posix_memalign( &addr2, 4096, 8192);
   posix_memalign( &addr3, 4096, 8192); 

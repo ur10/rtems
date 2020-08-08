@@ -42,9 +42,8 @@
   #include <rtems/asm.h>
 #else
   #include <rtems/score/basedefs.h>
-  #include <rtems/score/chainimpl.h>
-  #include <rtems/score/memoryprotection.h>
   #include <rtems/score/stack.h>
+  #include <rtems/score/memoryprotection.h>
 #endif
 
 #ifdef __cplusplus
@@ -54,79 +53,17 @@ extern "C" {
 #if !defined ( ASM )
 
 /**
- * The following defines the attributes of a protected stack
- */
-typedef struct
-{  
-  /** The stack address */
-  uintptr_t        stack_address;
-  /** This is the stack size */
-  size_t        size;
-  /** The pointer to the page table base */
-  uintptr_t      page_table_base;
-  /**Memory flag for the alllocated/shared stack */
-  uint32_t  access_flags;
-} Stackprotection_Attr;
-
-/**
- * The following defines the control block  of a shared stack
- */
-typedef struct
-{
-  /** This is the chain node for tracking shared stacks */
-  Chain_Node node;
-  /** This is the attribute of a shared stack*/
-  Stackprotection_Attr    Base;
-} Stackprotection_Shared_stack;
-
-/**
- * The following defines the control block of an allocated stack 
- */
-typedef struct
-{ 
-  /** The attribute of an allocated stack*/
-  Stackprotection_Attr    Base;
-  /** The pointer to the attributes of a stack shared with the stack 
-   * in question
-   */
-  Stackprotection_Shared_stack  *shared_stacks; 
-  /*
-   * Name of the thread-stack
-   */
-  char *name;
-  /** 
-  * The chain control for tracking the shared stacks with the thread-stack in 
-  * question.
-  */
-  Chain_Control shared_stack_control;
-} Stackprotection_Stack;
-
-/**
- * @brief Share the stack of a stack with the specified thread.
+ * @brief Share the stack address of a given thread with the target thread.
  * 
- * @param shared_address The stack to be shared
- * @param target_address The stack with which to share
- * @param flags The memory-access flag of the shared stack address
+ * @param target_stack Stack address of the target thread
+ * @param sharing_stack Stack address of the sharin thread
  */
-void _Stackprotection_Share_stack(
-  Stackprotection_Stack *shared_stack,
-  Stackprotection_Stack *target_stack, 
-  size_t shared_stack_size,
-  uint32_t flag 
-);
 
-/**
- * @brief Swap out the executing shared stack from the page table during 
- * context switch
- * 
- * The current method of switching the protected stack is to mark the switched
- * out stack as 'NO ACCESS'
- * 
- * @param excuting_stack Control block of the executing stack
- */
-void _Stackprotection_Context_switch(
-  Stackprotection_Stack *executing_stack,
-  Stackprotection_Stack *heir_stack
+int _Stackprotection_Share_stack(
+  void *target_stack,
+  void *sharing_stack,
+  size_t size,
+  uint32_t memory_flag
 );
 
 /**
@@ -139,7 +76,7 @@ void _Stackprotection_Context_switch(
  * @param Control block of the restored stack
  */ 
 void _Stackprotection_Context_restore(
-  Stackprotection_Stack *heir_stack
+  Stack_Control *heir_stack
 );
 
 #endif /* !defined ( ASM ) */

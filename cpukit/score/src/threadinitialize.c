@@ -21,7 +21,7 @@
 #include <rtems/score/threadimpl.h>
 #include <rtems/score/schedulerimpl.h>
 #include <rtems/score/stackimpl.h>
-#include <rtems/score/stackprotection.h>
+#include <rtems/score/memoryprotection.h>
 #include <rtems/score/tls.h>
 #include <rtems/score/userextimpl.h>
 #include <rtems/score/watchdogimpl.h>

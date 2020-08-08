@@ -38,71 +38,67 @@
 #endif
 
 #include <rtems/score/stackprotection.h>
-
-void _Stackprotection_Context_switch(
-  Stackprotection_Stack *executing_stack,
-  Stackprotection_Stack *heir_stack
-)
-{
-   
-    Chain_Node *node;
-    Chain_Control *shared_node_control;
-    Stackprotection_Shared_stack *shared_stack;
-
-    shared_node_control = &executing_stack->shared_stack_control;
-
-    if( shared_node_control != NULL) {
-        node = _Chain_Get_first_unprotected( shared_node_control );
-        while( _Chain_Is_tail(shared_node_control, node) == false) {
-            shared_stack = RTEMS_CONTAINER_OF( node, Stackprotection_Shared_stack, node);
-            _Memory_protection_Unset_entries( shared_stack->Base.stack_address, shared_stack->Base.size );
-        }
-    }
-    
-    _Stackprotection_Context_restore( heir_stack );
-}
+#include <rtems/score/thread.h>
 
 void _Stackprotection_Context_restore(
-  Stackprotection_Stack *heir_stack
+Stack_Control *heir_stack
 )
 {
-    Chain_Node *node;
-    uint32_t flags;
-    Chain_Control *shared_node_control;
-    Stackprotection_Shared_stack *shared_stack;
+  void* stack_address;
+  size_t stack_size;
+  uint32_t memory_flags;
+  uint32_t index;
 
-    shared_node_control = &heir_stack->shared_stack_control;
-
-    if( shared_node_control != NULL) {
-        node = _Chain_Get_first_unprotected( shared_node_control );
-        while( _Chain_Is_tail(shared_node_control, node) == false) {
-            shared_stack = RTEMS_CONTAINER_OF( node, Stackprotection_Shared_stack, node);
-            flags = shared_stack->Base.access_flags;
-            _Memory_protection_Set_entries( shared_stack->Base.stack_address, shared_stack->Base.size, flags );
-        }
-    }
+  for(index = 0;index < heir_stack->shared_stacks_count; index++) {
+    stack_address = heir_stack->shared_stacks[index]->shared_stack_area;
+    stack_size = heir_stack->shared_stacks[index]->shared_stack_size;
+    memory_flags = heir_stack->shared_stacks[index]->Base.access_flags;
+    _Memory_protection_Set_entries( stack_address, stack_size, memory_flags );
+  }
+  
 }
 
-void _Stackprotection_Share_stack(
-  Stackprotection_Stack *shared_stack,
-  Stackprotection_Stack *target_stack,
-  size_t shared_stack_size,
-  uint32_t flag
+static bool get_target_thread( Thread_Control *Control, void *arg)
+{
+  Stack_Shared_attr *shared_stack;
+  uint32_t count;
+  shared_stack = arg;
+  /**
+   * Check for the target thread by comparing the stack address. Add the shared stack
+   * attribute structure to the array tracking all the shared stacks.
+   */
+  if( Control->Start.Initial_stack.area == shared_stack->target_stack_area) {
+     count =  Control->Start.Initial_stack.shared_stacks_count + 1;
+     if(count >= SHARED_STACK_NUMBER) {
+       return false;
+     }
+     Control->Start.Initial_stack.shared_stacks_count = count;
+     Control->Start.Initial_stack.shared_stacks[count] = shared_stack;
+     shared_stack->stack_shared = true;
+
+     return true;
+  }  
+}
+
+int _Stackprotection_Share_stack(
+  void* target_stack,
+  void* sharing_stack,
+  size_t size,
+  uint32_t memory_flag
 )
 {
-    
-    Chain_Control *control;
-    void* shared_address;
-
-    control = &target_stack->shared_stack_control;
-    shared_address = shared_stack->Base.stack_address;
-
-    shared_stack->shared_stacks->Base.access_flags = flag;
-    shared_stack->shared_stacks->Base.size = shared_stack_size;
-    shared_stack->shared_stacks->Base.stack_address = shared_address;
-
-    if( control != NULL) {
-        _Chain_Append_unprotected( control, &shared_stack->shared_stacks->node);
-        _Memory_protection_Set_entries(shared_address, shared_stack_size, flag);
-    }
+ Thread_Control *target_thread;
+ Stack_Shared_attr shared_stack; 
+ 
+ shared_stack.Base.access_flags= memory_flag;
+ shared_stack.shared_stack_area = sharing_stack;
+ shared_stack.target_stack_area = target_stack;
+ shared_stack.shared_stack_size = size;
+ 
+ //_Thread_Iterate( get_target_thread, &shared_stack );
+ if( shared_stack.stack_shared == true ) {
+   return 0;
+ } else {
+   return -1;
+ }
 }

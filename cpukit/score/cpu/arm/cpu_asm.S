@@ -94,6 +94,8 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	mov r1, r9
 	mov r2, r10
 
+/* Set the memory entries of the shared stack */
+
 /* We load the stack-pointer of the heir thread pre-maturely, this is
  * done as oherwise the *_unset_entries call will execute from the stack of the
  * executing thread causing fatal exceptions.

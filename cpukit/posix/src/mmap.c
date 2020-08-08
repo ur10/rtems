@@ -29,12 +29,10 @@
 #include <rtems/posix/mmanimpl.h>
 #include <rtems/posix/shmimpl.h>
 #include <rtems/score/stackprotection.h>
+#include <rtems/score/memoryprotection.h>
 
-#define USE_THREAD_STACK_PROTECTION
 
-#if defined(USE_THREAD_STACK_PROTECTION)
-  Stackprotection_Stack *target_stack;
-  Stackprotection_Stack *shared_stack;
+
 
 static uint32_t mmap_flag_translate(int prot)
 {
@@ -54,23 +52,6 @@ static uint32_t mmap_flag_translate(int prot)
 
   return memory_flag;
 }
-
-static bool get_target_thread_visitor(Thread_Control *the_thread, void* arg)
-{
-  if(the_thread->Start.Initial_stack.area == arg) {
-    target_stack = &the_thread->the_stack;
-    return true;
-  }
-}
-
-static bool get_shared_thread_visitor(Thread_Control *the_thread, void* arg)
-{
-  if(the_thread->Start.Initial_stack.area == arg) {
-    shared_stack = &the_thread->the_stack;
-    return true;
-  }
-}
-#endif
 
 /**
  * mmap chain of mappings.
@@ -92,10 +73,10 @@ void *mmap(
   bool            map_private;
   bool            is_shared_shm;
   int             err;
-#if defined (USE_THREAD_STACK_PROTECTION)
   uint32_t memory_flags;
   uintptr_t shared_stack_address;
-#endif
+  rtems_status_code status;
+
   map_fixed = (flags & MAP_FIXED) == MAP_FIXED;
   map_anonymous = (flags & MAP_ANON) == MAP_ANON;
   map_shared = (flags & MAP_SHARED) == MAP_SHARED;
@@ -109,15 +90,7 @@ void *mmap(
     errno = EINVAL;
     return MAP_FAILED;
   }
-#if defined (USE_THREAD_STACK_PROTECTION)
-/*
- * We cannot share a part of the stack, hence, offset cannot be zer
- */
-  if(off == 0) {
-    errno = EINVAL;
-    return MAP_FAILED;
-  }
-#endif
+
   /*
    * We can provide read, write and execute because the memory in RTEMS does
    * not normally have protections but we cannot hide access to memory. For
@@ -130,16 +103,6 @@ void *mmap(
     return MAP_FAILED;
   }
 
-#if defined (USE_THREAD_STACK_PROTECTION)
-/**
- * MAP_ANONYMOUS, MAP_PRIVATE and MAP_FIXED are not supported for thread-stack protection. 
- * We can only have MAP_SHARED.
-*/
-  if(map_anonymous || map_fixed || map_private || ~map_shared) {
-    errno = EINVAL;
-    return MAP_FAILED;
-  }
-#else
   /*
    * We can not normally provide restriction of write access. Reject any
    * attempt to map without write permission, since we are not able to
@@ -250,43 +213,7 @@ void *mmap(
       return MAP_FAILED;
     }
   }
-#endif
-#if defined ( USE_THREAD_STACK_PROTECTION )
-  memory_flags = mmap_flag_translate( prot );
 
-/**
-  * We need to open a shared memory object for sharing stack. 
-  */
- 
-  if ( S_ISREG( sb.st_mode ) || S_ISBLK( sb.st_mode ) ||
-         S_ISCHR( sb.st_mode ) || S_ISFIFO( sb.st_mode ) ||
-         S_ISSOCK( sb.st_mode ) ) {
-     errno = EINVAL;
-      return MAP_FAILED;
-    }
- 
-  err = (*iop->pathinfo.handlers->mmap_h)(
-        iop,
-        &shared_stack_address,
-        len,
-        prot,
-        off );
-  
-  if(err != 0) {
-    return MAP_FAILED;
-  }
-
-/*
- * We obtain the thread stack attributes of the target thread and the sharing
- * thread, based on their addresses.
- */
-  rtems_task_iterate(get_target_thread_visitor, addr);
-  rtems_task_iterate(get_shared_thread_visitor, shared_stack_address);
-/*
- * Share the stack address od the sharing thread with the target thread.
- */
-  _Stackprotection_Share_stack(addr, shared_stack_address, len, memory_flags);
-#else
   /* Create the mapping */
   mapping = malloc( sizeof( mmap_mapping ));
   if ( !mapping ) {
@@ -387,18 +314,24 @@ void *mmap(
     }
 
     err = (*iop->pathinfo.handlers->mmap_h)(
-        iop, &mapping->addr, len, prot, off );
+        iop, &mapping->addr, len, prot, off );   
     if ( err != 0 ) {
       mmap_mappings_lock_release( );
       free( mapping );
       return MAP_FAILED;
     }
+    /**
+     * We share thread-stacks only when we have a shared memory object and map
+     * shared flag set
+     */
+    memory_flags = mmap_flag_translate( prot );
+    status = _Stackprotection_Share_stack( mapping->addr, addr, len,memory_flags );
   }
-
-  rtems_chain_append_unprotected( &mmap_mappings, &mapping->node );
+  if(status == RTEMS_INVALID_ADDRESS ) {
+    rtems_chain_append_unprotected( &mmap_mappings, &mapping->node );
+  }
 
   mmap_mappings_lock_release( );
 
   return mapping->addr;
-#endif
 }
