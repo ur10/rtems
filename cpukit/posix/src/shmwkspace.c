@@ -29,8 +29,8 @@ int _POSIX_Shm_Object_create_from_workspace(
 {
 #if defined(USE_THREAD_STACK_PROTECTION)
   POSIX_Shm_Control *shm;
-  Objects_Id id;
-  Objects_Name_or_id_lookup_errors err;
+  size_t len;
+  Objects_Get_by_name_error err;
   Thread_Control *Control;
   ISR_lock_Context lock_context;
 
@@ -43,9 +43,8 @@ int _POSIX_Shm_Object_create_from_workspace(
      * Obtain the object id of the thread and then get the thread control block
      * corresponding to that id. 
      */
-     err = _Objects_Name_to_id_u32( &_Thread_Information.Objects, shm->Object.name.name_u32, RTEMS_LOCAL, &id );
-     if( err == OBJECTS_NAME_OR_ID_LOOKUP_SUCCESSFUL) {
-       Control = _Thread_Get(id, &lock_context );
+    Control = _Objects_Get_by_name(&_Thread_Information.Objects, shm->Object.name.name_p[8], &len, &err);
+     if( Control != NULL ) {
        shm_obj->handle = Control->Start.Initial_stack.area;
        if( size != Control->Start.Initial_stack.size) {
          return ENOMEM;

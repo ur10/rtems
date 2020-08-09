@@ -76,12 +76,12 @@ typedef struct
   Stack_Protection_attr    Base;
   /** This is the stack address of the sharing thread*/
   void* shared_stack_area;
+  /** Stack size of the sharing thread*/
+  size_t shared_stack_size;
   /** This is the stack address of the target stack. Maybe this area is not
    * needed but this helps in selecting the target thread during stack sharing.
    */
   void* target_stack_area;
-  /** Stack size of the sharing thread*/
-  size_t shared_stack_size;
  /** Error checking for valid target stack address. This is also used to
   * distinguish between a normal mmap operation and a stack sharing operation. 
   */

@@ -61,13 +61,13 @@ void *POSIX_Init( void *argument )
    * Write to the stack address of thread1 after it has been switched out.
    */ 
   printf("Here\n");
-  memset( stack_addr1, 0, stack_size1 );
+  
 
   pthread_join( id2, NULL );
    /*
    * Write to the stack address of thread2 after it has been switched out.
    */  
-  memset( stack_addr2, 0, stack_size2 );
+
 
 
   TEST_END();

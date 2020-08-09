@@ -83,7 +83,7 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	mov r10, r2
 /* Load the parameters for function call */
 	mov r0, r1
-	sub r0, r0,  #76
+	sub r0, r0, #76
 	ldr r1, [r0]
 	ldr r0, [r0, #4]
 	mov r2, #3
@@ -95,6 +95,27 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	mov r2, r10
 
 /* Set the memory entries of the shared stack */
+    sub	r0, r0, #76
+	add r6, r0, #16
+
+.L_shared_stack_restore:
+	
+	ldr r2, [r6, #4]
+	ldr r1, [r6, #8]
+	ldr r0, [r6, #12]
+	bl _Memory_protection_Set_entries
+	add  r6, #4
+	add  r11, #1
+/* We compare with a hard-coded value, this is the number of shared stacks
+ * (SHARED_STACK_NUMBER)
+ */
+	cmp r11, #8
+	bne .L_shared_stack_restore
+
+/* Restore the saved registers	 */
+	mov r0, r8
+	mov r1, r9
+	mov r2, r10
 
 /* We load the stack-pointer of the heir thread pre-maturely, this is
  * done as oherwise the *_unset_entries call will execute from the stack of the
@@ -103,10 +124,9 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	ldr sp, [r1, #32]
 /* Load the parameters of the function call */
 	mov r1, r0
-	sub r0, r0,  #76
+	sub r0, r0, #76
 	ldr r1, [r0]
 	ldr r0, [r0, #4]
-	mov r2, #3
 	bl  _Memory_protection_Unset_entries
 	/*
 	 * Restore the saved registers
@@ -190,21 +210,26 @@ DEFINE_FUNCTION_ARM(_CPU_Context_restore)
 #if defined ( USE_THREAD_STACK_PROTECTION )
  	
 	/* Save the registers modified during function call */
-	  mov r8, r0
-	  mov r9, r1
-	  mov r10, r2
+	mov r8, r0
+	mov r9, r1
+	mov r10, r2
+	
 	/* Load the parameters for function call */
 	mov r1, r0
 	sub r0, r0,  #76
 	ldr r1, [r0]
 	ldr r0, [r0, #4]
 	mov r2, #3
-	  bl _Memory_protection_Set_entries
+	bl _Memory_protection_Set_entries
 
 	/* Restore the saved registers	 */
-	  mov r0, r8
-	  mov r1, r9
-	  mov r2, r10
+	mov r0, r8
+	mov r1, r9
+	mov r2, r10
+
+	/* Set memory entries of the shared thread stacks */
+
+
 #endif	
         b       .L_restore
 
