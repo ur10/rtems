@@ -34,6 +34,7 @@
 #include <rtems/score/priority.h>
 #include <rtems/score/schedulernode.h>
 #include <rtems/score/stack.h>
+#include <rtems/score/stackprotection.h>
 #include <rtems/score/states.h>
 #include <rtems/score/threadq.h>
 #include <rtems/score/timestamp.h>
@@ -84,6 +85,8 @@ extern "C" {
  * this feature is needed even when POSIX is disabled.
  */
 #define RTEMS_SCORE_THREAD_ENABLE_SCHEDULER_CALLOUT
+
+#define  USE_THREAD_STACK_PROTECTION
 
 #if defined(RTEMS_DEBUG)
 #define RTEMS_SCORE_THREAD_ENABLE_RESOURCE_COUNT
@@ -829,6 +832,7 @@ struct _Thread_Control {
 
   /** This field contains the context of this thread. */
   Context_Control                       Registers;
+  
 #if ( CPU_HARDWARE_FP == TRUE ) || ( CPU_SOFTWARE_FP == TRUE )
   /** This field points to the floating point context for this thread.
    *  If NULL, the thread is integer only.

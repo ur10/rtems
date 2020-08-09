@@ -50,6 +50,7 @@ RTEMS_TEST_CHECK([nsecs])
 RTEMS_TEST_CHECK([paranoia])
 RTEMS_TEST_CHECK([pppd])
 RTEMS_TEST_CHECK([ticker])
+RTEMS_TEST_CHECK([thread_stack_protection])
 RTEMS_TEST_CHECK([unlimited])
 
 AC_CONFIG_FILES([Makefile])

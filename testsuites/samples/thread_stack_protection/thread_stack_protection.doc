@@ -1,0 +1,2 @@
+This test sample demonstrates the thread stack protection functionality. We try
+to write to the stack of a switched-out thread.         

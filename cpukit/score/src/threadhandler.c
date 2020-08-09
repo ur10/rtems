@@ -22,6 +22,7 @@
 #include <rtems/score/assert.h>
 #include <rtems/score/interr.h>
 #include <rtems/score/isrlevel.h>
+#include <rtems/score/stackprotection.h>
 #include <rtems/score/userextimpl.h>
 
 /*
@@ -93,6 +94,11 @@ void _Thread_Handler( void )
    */
   level = executing->Start.isr_level;
   _ISR_Set_level( level );
+
+  /*
+   * Restore the shared thread-stacks
+   */
+ // _Stackprotection_Context_restore( &executing->the_stack );
 
   /*
    * Initialize the floating point context because we do not come

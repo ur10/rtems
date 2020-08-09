@@ -23,10 +23,14 @@
 #include <bsp/stackalloc.h>
 
 #include <rtems.h>
+#include <rtems/score/basedefs.h>
 #include <rtems/score/heapimpl.h>
 #include <rtems/score/wkspace.h>
+#include <rtems/score/memoryprotection.h>
 
 #include <bsp/linker-symbols.h>
+
+#define USE_THREAD_STACK_PROTECTION
 
 static Heap_Control bsp_stack_heap;
 
@@ -44,6 +48,15 @@ void *bsp_stack_allocate(size_t size)
 {
   void *stack = NULL;
 
+#if defined (USE_THREAD_STACK_PROTECTION)
+/*
+ * This is a temporary hack, we need to use _Heap_Allocate_aligned() but the heap
+ * intialization for bsp_stack_heap fails as bsp_section_stack_size is 0. See
+ * bsp_stack_allocate_init().
+ */
+  posix_memalign(&stack, 4096 , size);
+  _Memory_protection_Set_entries( stack, size, ( RTEMS_READ_ONLY | RTEMS_MEMORY_CACHED ) );
+#else
   if (bsp_stack_heap.area_begin != 0) {
     stack = _Heap_Allocate(&bsp_stack_heap, size);
   }
@@ -51,11 +64,11 @@ void *bsp_stack_allocate(size_t size)
   if (stack == NULL) {
     stack = _Workspace_Allocate(size);
   }
-
+#endif
   return stack;
 }
 
-void bsp_stack_free(void *stack)
+void bsp_stack_free(void *stack) 
 {
   bool ok = _Heap_Free(&bsp_stack_heap, stack);
 

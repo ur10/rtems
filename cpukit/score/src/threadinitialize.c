@@ -21,10 +21,18 @@
 #include <rtems/score/threadimpl.h>
 #include <rtems/score/schedulerimpl.h>
 #include <rtems/score/stackimpl.h>
+#include <rtems/score/memoryprotection.h>
 #include <rtems/score/tls.h>
 #include <rtems/score/userextimpl.h>
 #include <rtems/score/watchdogimpl.h>
 #include <rtems/config.h>
+
+#define USE_THREAD_STACK_PROTECTION
+
+#if defined ( USE_THREAD_STACK_PROTECTION )
+  #define STR( s )  #s  
+  #define STACK_ADDRESS_NAME( stack_address )   "/taskfs/"STR( stack_address )
+#endif
 
 bool _Thread_Initialize(
   Thread_Information         *information,
@@ -84,7 +92,7 @@ bool _Thread_Initialize(
 
   stack_area = config->stack_area;
   stack_size = config->stack_size;
-
+  
   /* Allocate floating-point context in stack area */
 #if ( CPU_HARDWARE_FP == TRUE ) || ( CPU_SOFTWARE_FP == TRUE )
   if ( config->is_fp ) {
@@ -113,7 +121,11 @@ bool _Thread_Initialize(
      stack_area,
      stack_size
   );
-
+  
+  /**
+   * Initialize the protected stack attributes.
+   */
+   the_thread->Start.Initial_stack.Base.access_flags = RTEMS_READ_WRITE | RTEMS_MEMORY_CACHED;
   /*
    *  Get thread queue heads
    */
@@ -122,6 +134,7 @@ bool _Thread_Initialize(
   );
   _Thread_queue_Heads_initialize( the_thread->Wait.spare_heads );
 
+#if defined ( USE_THREAD_STACK_PROTECTION )
   /*
    *  General initialization
    */
@@ -131,6 +144,7 @@ bool _Thread_Initialize(
   the_thread->Start.is_preemptible   = config->is_preemptible;
   the_thread->Start.budget_algorithm = config->budget_algorithm;
   the_thread->Start.budget_callout   = config->budget_callout;
+#endif
 
   _Thread_Timer_initialize( &the_thread->Timer, cpu );
 
