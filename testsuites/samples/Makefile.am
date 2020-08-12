@@ -155,6 +155,13 @@ thread_stack_protection_CPPFLAGS = $(AM_CPPFLAGS) $(TEST_FLAGS_thread_stack_prot
 	$(support_includes)
 endif
 
+if TEST_thread_stack_sharing
+samples += thread_stack_sharing
+thread_stack_sharing_SOURCES = thread_stack_sharing/init.c
+thread_stack_sharing_CPPFLAGS = $(AM_CPPFLAGS) $(TEST_FLAGS_thread_stack_sharing) \
+	$(support_includes)
+endif
+
 if TEST_unlimited
 samples += unlimited
 sample_screens += unlimited/unlimited.scn

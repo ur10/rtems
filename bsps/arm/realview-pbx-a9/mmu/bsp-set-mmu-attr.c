@@ -48,9 +48,9 @@ void _Memory_protection_Set_entries(uintptr_t begin, size_t size, uint32_t flags
      * The ARM reference manual instructs to disable all the interrupts before
      * setting up page table entries.
      */
-    rtems_interrupt_disable(irq_level);
+    //rtems_interrupt_disable(irq_level);
     arm_cp15_set_translation_table_entries(begin, end, access_flags); 
-    rtems_interrupt_enable(irq_level);
+    //rtems_interrupt_enable(irq_level);
   }
 }
 
@@ -68,8 +68,8 @@ void _Memory_protection_Unset_entries(uintptr_t begin, size_t size)
      *  The ARM reference manual instructs to disable all the interrupts before
      * setting up page table entries.
      */
-    rtems_interrupt_disable(irq_level);
+    //rtems_interrupt_disable(irq_level);
     arm_cp15_set_translation_table_entries(begin, end, access_flags); 
-    rtems_interrupt_enable(irq_level);
+    //rtems_interrupt_enable(irq_level);
   }
 }

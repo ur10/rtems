@@ -92,9 +92,9 @@ void _Thread_Handler( void )
   _ISR_Set_level( level );
 
   /*
-   * Restore the shared thread-stacks
+   * Switch-out the the shared thread-stacks
    */
- // _Stackprotection_Context_restore( &executing->the_stack );
+  _Stackprotection_Context_restore( &executing->Start.Initial_stack );
 
   /*
    * Initialize the floating point context because we do not come

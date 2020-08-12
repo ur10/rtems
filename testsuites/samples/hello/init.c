@@ -13,6 +13,8 @@
 
 #include <rtems.h>
 #include <tmacros.h>
+#include <sys/mman.h>
+#include <sys/fcntl.h>
 #include <rtems/score/memoryprotection.h>
 #include <rtems/score/stack.h>
 
@@ -31,9 +33,10 @@ static rtems_task Init(
   
   TEST_BEGIN();
   
-  posix_memalign( &addr1, 4096, 8192);
-  posix_memalign( &addr2, 4096, 8192);
-  posix_memalign( &addr3, 4096, 8192); 
+  int fd = shm_open("/taskfs/", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR );
+
+  ftruncate( fd, 8);
+
  // _Memory_protection_Set_entries( addr1, 8192, READ_WRITE );
   //_Memory_protection_Set_entries( addr2, 8192, READ_ONLY );
   //_Memory_protection_Set_entries( addr3, 8192, NO_ACCESS );  
@@ -57,7 +60,16 @@ static rtems_task Init(
 
 #define CONFIGURE_INIT_TASK_ATTRIBUTES RTEMS_FLOATING_POINT
 
+#define CONFIGURE_MAXIMUM_FILE_DESCRIPTORS 10
+
+#define CONFIGURE_MAXIMUM_POSIX_SHMS           2
+
 #define CONFIGURE_INITIAL_EXTENSIONS RTEMS_TEST_INITIAL_EXTENSION
 
+#define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
+#define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate
+#define CONFIGURE_TASK_STACK_DEALLOCATOR     bsp_stack_free
+
+#include <bsp/stackalloc.h>
 #define CONFIGURE_INIT
 #include <rtems/confdefs.h>
