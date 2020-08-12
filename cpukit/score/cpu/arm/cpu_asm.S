@@ -31,8 +31,6 @@
 #include "config.h"
 #endif
 
-#define USE_THREAD_STACK_PROTECTION
-
 #include <rtems/asm.h>
 
 #ifdef ARM_MULTILIB_ARCH_V4
@@ -87,7 +85,7 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	ldr r1, [r0]
 	ldr r0, [r0, #4]
 	mov r2, #3
-	bl _Memory_protection_Set_entries
+	//bl _Memory_protection_Set_entries
 
 /* Restore the saved registers	 */
 	mov r0, r8
@@ -103,7 +101,7 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	ldr r2, [r6, #4]
 	ldr r1, [r6, #8]
 	ldr r0, [r6, #12]
-	bl _Memory_protection_Set_entries
+	//bl _Memory_protection_Set_entries
 	add  r6, #4
 	add  r11, #1
 /* We compare with a hard-coded value, this is the number of shared stacks
@@ -127,7 +125,7 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	sub r0, r0, #76
 	ldr r1, [r0]
 	ldr r0, [r0, #4]
-	bl  _Memory_protection_Unset_entries
+	//bl  _Memory_protection_Unset_entries
 	/*
 	 * Restore the saved registers
 	 */
@@ -220,7 +218,7 @@ DEFINE_FUNCTION_ARM(_CPU_Context_restore)
 	ldr r1, [r0]
 	ldr r0, [r0, #4]
 	mov r2, #3
-	bl _Memory_protection_Set_entries
+	//bl _Memory_protection_Set_entries
 
 	/* Restore the saved registers	 */
 	mov r0, r8

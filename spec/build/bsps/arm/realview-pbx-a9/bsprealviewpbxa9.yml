@@ -57,6 +57,7 @@ links:
 source:
 - bsps/arm/realview-pbx-a9/console/console-config.c
 - bsps/arm/realview-pbx-a9/console/console-polled.c
+- bsps/arm/realview-pbx-a9/mmu/bsp-set-mmu-attr.c
 - bsps/arm/realview-pbx-a9/start/bspreset.c
 - bsps/arm/realview-pbx-a9/start/bspstart.c
 - bsps/arm/realview-pbx-a9/start/bspstarthooks.c

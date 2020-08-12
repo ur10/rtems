@@ -30,8 +30,6 @@
 
 #include <bsp/linker-symbols.h>
 
-#define USE_THREAD_STACK_PROTECTION
-
 static Heap_Control bsp_stack_heap;
 
 void bsp_stack_allocate_init(size_t stack_space_size)

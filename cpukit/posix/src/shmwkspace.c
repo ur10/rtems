@@ -20,8 +20,6 @@
 #include <rtems/posix/shmimpl.h>
 #include <rtems/stackname.h>
 
-#define USE_THREAD_STACK_PROTECTION
-
 int _POSIX_Shm_Object_create_from_workspace(
   POSIX_Shm_Object *shm_obj,
   size_t size

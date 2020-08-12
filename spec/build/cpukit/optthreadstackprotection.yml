@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-boolean: null
+- env-enable: null
+- define-condition: null
+build-type: option
+copyrights:
+- Copyright (C) 2020 Utkarsh Rai (utkarsh.rai60@gmail.com)
+default: false
+default-by-variant: []
+description: |
+  Enable the thread stack protection support
+enabled-by: true
+links: []
+name: USE_THREAD_STACK_PROTECTION
+type: build

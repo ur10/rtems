@@ -41,7 +41,6 @@ extern "C" {
  * @{
  */
 
-#define USE_THREAD_STACK_PROTECTION
 /**
  *  The following constant defines the minimum stack size which every
  *  thread must exceed.

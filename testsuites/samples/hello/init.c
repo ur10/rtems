@@ -34,9 +34,9 @@ static rtems_task Init(
   posix_memalign( &addr1, 4096, 8192);
   posix_memalign( &addr2, 4096, 8192);
   posix_memalign( &addr3, 4096, 8192); 
- // _Memory_protection_Set_entries( addr1, 8192, READ_WRITE );
-  //_Memory_protection_Set_entries( addr2, 8192, READ_ONLY );
-  //_Memory_protection_Set_entries( addr3, 8192, NO_ACCESS );  
+  _Memory_protection_Set_entries( addr1, 8192, 7 );
+  _Memory_protection_Set_entries( addr2, 8192, 6 );
+  _Memory_protection_Set_entries( addr3, 8192, 0 );  
   char *c = addr1;
   c[0]++;
   char *b = addr2;

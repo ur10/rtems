@@ -27,8 +27,6 @@
 #include <rtems/score/watchdogimpl.h>
 #include <rtems/config.h>
 
-#define USE_THREAD_STACK_PROTECTION
-
 #if defined ( USE_THREAD_STACK_PROTECTION )
   #define STR( s )  #s  
   #define STACK_ADDRESS_NAME( stack_address )   "/taskfs/"STR( stack_address )
