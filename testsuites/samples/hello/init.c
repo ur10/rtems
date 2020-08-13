@@ -12,8 +12,15 @@
 #endif
 
 #include <tmacros.h>
+<<<<<<< HEAD
 #include "test_support.h"
 #include <pthread.h>
+=======
+#include <sys/mman.h>
+#include <sys/fcntl.h>
+#include <rtems/score/memoryprotection.h>
+#include <rtems/score/stack.h>
+>>>>>>> 989d286862b21386363ab58a8d3aec9c226bf2de
 
 const char rtems_test_name[] = "PSX 16";
 
@@ -43,28 +50,19 @@ void *POSIX_Init(void *argument)
   void           *join_return;
 
   TEST_BEGIN();
+  
+  int fd = shm_open("/taskfs/", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR );
 
-  Index = 5;
+  ftruncate( fd, 8);
 
-  /* Initialize and set thread detached attribute */
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  puts( "Creating TestThread" );
-  status = pthread_create( &id, &attr, TestThread, (void *)&Index );
-  rtems_test_assert( status == 0 );
-
-  /* let test thread run and exit */
-  puts( "Let TestThread run and exit before we attempt to join" );
-  //sleep( 2 );
-
-  join_return = NULL;
-  status = pthread_join( id, &join_return );
-  rtems_test_assert( status == 0 );
-  rtems_test_assert( join_return == &Index );
-  rtems_test_assert( *(int *)join_return == 7 );
-  puts( "Successfully joined with TestThread" );
-
+ // _Memory_protection_Set_entries( addr1, 8192, READ_WRITE );
+  //_Memory_protection_Set_entries( addr2, 8192, READ_ONLY );
+  //_Memory_protection_Set_entries( addr3, 8192, NO_ACCESS );  
+  char *c = addr1;
+  c[0]++;
+  char *b = addr2;
+  char *d = addr3 + 8192;
+  printf( "Hello World\n" );
   TEST_END();
 
   rtems_test_exit(0);
@@ -80,6 +78,12 @@ void *POSIX_Init(void *argument)
 #define CONFIGURE_MAXIMUM_POSIX_THREADS        3
 
 #define CONFIGURE_POSIX_INIT_THREAD_TABLE
+
+#define CONFIGURE_MAXIMUM_FILE_DESCRIPTORS 10
+
+#define CONFIGURE_MAXIMUM_POSIX_SHMS           2
+
+#define CONFIGURE_INITIAL_EXTENSIONS RTEMS_TEST_INITIAL_EXTENSION
 
 #define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
 #define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate

@@ -92,29 +92,6 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	mov r1, r9
 	mov r2, r10
 
-/* Set the memory entries of the shared stack */
-    sub	r0, r0, #76
-	add r6, r0, #16
-
-.L_shared_stack_restore:
-	
-	ldr r2, [r6, #4]
-	ldr r1, [r6, #8]
-	ldr r0, [r6, #12]
-	bl _Memory_protection_Set_entries
-	add  r6, #4
-	add  r11, #1
-/* We compare with a hard-coded value, this is the number of shared stacks
- * (SHARED_STACK_NUMBER)
- */
-	cmp r11, #8
-	bne .L_shared_stack_restore
-
-/* Restore the saved registers	 */
-	mov r0, r8
-	mov r1, r9
-	mov r2, r10
-
 /* We load the stack-pointer of the heir thread pre-maturely, this is
  * done as oherwise the *_unset_entries call will execute from the stack of the
  * executing thread causing fatal exceptions.
@@ -129,6 +106,28 @@ DEFINE_FUNCTION_ARM(_CPU_Context_switch)
 	/*
 	 * Restore the saved registers
 	 */
+	mov r0, r8
+	mov r1, r9
+	mov r2, r10
+	
+	/* Set the memory entries of the shared stack */
+    sub	r0, r0, #76
+	add r6, r0, #16
+
+.L_shared_stack_restore:
+	
+	ldr r1, [r6, #8]
+	ldr r0, [r6, #12]
+	bl _Memory_protection_Unset_entries
+	add  r6, #4
+	add  r11, #1
+/* We compare with a hard-coded value, this is the number of shared stacks
+ * (SHARED_STACK_NUMBER)
+ */
+	cmp r11, #8
+	bne .L_shared_stack_restore
+
+/* Restore the saved registers	 */
 	mov r0, r8
 	mov r1, r9
 	mov r2, r10

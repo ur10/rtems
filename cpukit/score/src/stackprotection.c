@@ -52,7 +52,6 @@ Stack_Control *heir_stack
   for(index = 0;index < heir_stack->shared_stacks_count; index++) {
     stack_address = heir_stack->shared_stacks[index]->shared_stack_area;
     stack_size = heir_stack->shared_stacks[index]->shared_stack_size;
-    memory_flags = heir_stack->shared_stacks[index]->Base.access_flags;
     _Memory_protection_Set_entries( stack_address, stack_size, memory_flags );
   }
   
