@@ -43,6 +43,8 @@ links:
 - role: build-dependency
   uid: threadstackprotection
 - role: build-dependency
+  uid: threadstacksharing
+- role: build-dependency
   uid: unlimited
 type: build
 use-after:

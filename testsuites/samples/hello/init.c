@@ -11,53 +11,81 @@
 #include "config.h"
 #endif
 
-#include <rtems.h>
 #include <tmacros.h>
-#include <rtems/score/memoryprotection.h>
-#include <rtems/score/stack.h>
+#include "test_support.h"
+#include <pthread.h>
 
-const char rtems_test_name[] = "HELLO WORLD";
+const char rtems_test_name[] = "PSX 16";
 
-void* addr1;
-void* addr2;
-void* addr3;
+/* forward declarations to avoid warnings */
+void *POSIX_Init(void *argument);
+void *TestThread(void *argument);
 
-static rtems_task Init(
-  rtems_task_argument ignored
+int Index;
+
+void *TestThread(
+  void *argument
 )
 {
-  rtems_print_printer_fprintf_putc(&rtems_test_printer);
-  Stack_Control stack;
-  
-  TEST_BEGIN();
-  
-  posix_memalign( &addr1, 4096, 8192);
-  posix_memalign( &addr2, 4096, 8192);
-  posix_memalign( &addr3, 4096, 8192); 
-  _Memory_protection_Set_entries( addr1, 8192, 7 );
-  _Memory_protection_Set_entries( addr2, 8192, 6 );
-  _Memory_protection_Set_entries( addr3, 8192, 0 );  
-  char *c = addr1;
-  c[0]++;
-  char *b = addr2;
-  char *d = addr3 + 8192;
-  printf( "Hello World\n" );
-  TEST_END();
-  rtems_test_exit( 0 );
+  int *index = (int *)argument;
+
+  *index = 7; 
+
+  puts( "TestThread exiting" );
+  return argument;
 }
 
+void *POSIX_Init(void *argument)
+{
+  int             status;
+  pthread_t       id;
+  pthread_attr_t  attr;
+  void           *join_return;
 
-/* NOTICE: the clock driver is explicitly disabled */
-#define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
+  TEST_BEGIN();
+
+  Index = 5;
+
+  /* Initialize and set thread detached attribute */
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+  puts( "Creating TestThread" );
+  status = pthread_create( &id, &attr, TestThread, (void *)&Index );
+  rtems_test_assert( status == 0 );
+
+  /* let test thread run and exit */
+  puts( "Let TestThread run and exit before we attempt to join" );
+  //sleep( 2 );
+
+  join_return = NULL;
+  status = pthread_join( id, &join_return );
+  rtems_test_assert( status == 0 );
+  rtems_test_assert( join_return == &Index );
+  rtems_test_assert( *(int *)join_return == 7 );
+  puts( "Successfully joined with TestThread" );
+
+  TEST_END();
+
+  rtems_test_exit(0);
+}
+
+/* configuration information */
+
 #define CONFIGURE_APPLICATION_NEEDS_SIMPLE_CONSOLE_DRIVER
-
-#define CONFIGURE_MAXIMUM_TASKS            1
-
-#define CONFIGURE_RTEMS_INIT_TASKS_TABLE
-
-#define CONFIGURE_INIT_TASK_ATTRIBUTES RTEMS_FLOATING_POINT
+#define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
 
 #define CONFIGURE_INITIAL_EXTENSIONS RTEMS_TEST_INITIAL_EXTENSION
 
+#define CONFIGURE_MAXIMUM_POSIX_THREADS        3
+
+#define CONFIGURE_POSIX_INIT_THREAD_TABLE
+
+#define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
+#define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate
+#define CONFIGURE_TASK_STACK_DEALLOCATOR     bsp_stack_free
+
+#include <bsp/stackalloc.h>
 #define CONFIGURE_INIT
 #include <rtems/confdefs.h>
+/* end of file */

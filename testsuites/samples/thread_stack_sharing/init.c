@@ -5,8 +5,7 @@
 #include <rtems.h>
 #include <tmacros.h>
 #include <pthread.h>
-#include <mman.h>
-#include <rtems/stackname.h>
+#include <sys/mman.h>
 #include <sys/fcntl.h>
 #include <rtems/score/memoryprotection.h>
 
@@ -29,7 +28,8 @@ void *POSIX_Init( void *argument )
   pthread_attr_t attr1;  
   pthread_attr_t attr2;
   int fd;
-  char* name;
+  char name[4] = "0x01";
+  char thread_name[13] = "/taskfs/0x01";
 
   TEST_BEGIN();
  
@@ -55,25 +55,30 @@ void *POSIX_Init( void *argument )
   pthread_attr_setstack( &attr2, stack_addr2, stack_size2 );
 
   pthread_create( &id1, &attr1, Test_routine, NULL );
-  pthread_create( &id2, &attr2, Test_routine, NULL );
+
  /*
   * We set the memory attributes of the stack from the application.
   */
-  _Memory_protection_Set_entries( stack_addr1, stack_size1, READ_ONLY | MEMORY_CACHED );
-  _Memory_protection_Set_entries( stack_addr2, stack_size2, READ_ONLY | MEMORY_CACHED );
-  
+  _Memory_protection_Set_entries( stack_addr1, stack_size1, RTEMS_NO_ACCESS | RTEMS_MEMORY_CACHED );
+
+  pthread_create( &id2, &attr2, Test_routine, NULL );
+  _Memory_protection_Set_entries( stack_addr2, stack_size2, RTEMS_NO_ACCESS | RTEMS_MEMORY_CACHED );
+
   /*
-   * Obtain the name of the stack-address to be shared for allocating a shared
-   * memory object.
+   * Add leading "/taskfs/" to denote thread-stack name.
    */ 
-  
-  name = rtems_stack_name_get( stack_addr1 );
-  
+  strlcat( thread_name, name, 4);
+
+  /* 
+  * Set the name of the thread object same as that of the shared memory object name
+  */
+  rtems_object_set_name( id1, name);
+
   /*
    * Create a shared memory object of the  stack we want to share with
    * appropraite permissions. We share the stack with read and write permission
    */
-  fd = shm_open( name, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR );
+  fd = shm_open( thread_name, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR );
   
   /*
    * Truncate the size of the file to the size of the stack.
@@ -86,7 +91,7 @@ void *POSIX_Init( void *argument )
    * protection and access flags, file descriptor of the shared memory objcet
    */
   addr = mmap( stack_addr2, stack_size1, PROT_READ | PROT_WRITE, O_RDWR, fd, 0 );
-  rtems_test_assert( addr != NULL ); 
+  rtems_test_assert( addr != NULL );
 
   pthread_join( id1, NULL );
   /*
@@ -114,8 +119,18 @@ void *POSIX_Init( void *argument )
 
 #define CONFIGURE_INITIAL_EXTENSIONS RTEMS_TEST_INITIAL_EXTENSION
 
-#define CONFIGURE_MAXIMUM_POSIX_THREADS        2
+#define CONFIGURE_MAXIMUM_POSIX_THREADS        4
+
+#define CONFIGURE_MAXIMUM_POSIX_SHMS           2
+
+#define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 10
 
 #define CONFIGURE_POSIX_INIT_THREAD_TABLE
 
+#define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
+#define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate
+#define CONFIGURE_TASK_STACK_DEALLOCATOR     bsp_stack_free
+
+#include <bsp/stackalloc.h>
+#define CONFIGURE_INIT
 #include <rtems/confdefs.h>

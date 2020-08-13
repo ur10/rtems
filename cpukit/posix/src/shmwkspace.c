@@ -16,9 +16,12 @@
 
 #include <errno.h>
 #include <string.h>
+#include <rtems/posix/pthread.h>
 #include <rtems/score/wkspace.h>
 #include <rtems/posix/shmimpl.h>
 #include <rtems/stackname.h>
+
+//#define USE_THREAD_STACK_PROTECTION
 
 int _POSIX_Shm_Object_create_from_workspace(
   POSIX_Shm_Object *shm_obj,
@@ -27,21 +30,29 @@ int _POSIX_Shm_Object_create_from_workspace(
 {
 #if defined(USE_THREAD_STACK_PROTECTION)
   POSIX_Shm_Control *shm;
-  size_t len;
-  Objects_Get_by_name_error err;
+  Objects_Id id;
+  Objects_Name_or_id_lookup_errors err;
   Thread_Control *Control;
   ISR_lock_Context lock_context;
+  char *name;
 
   shm = RTEMS_CONTAINER_OF(shm_obj, POSIX_Shm_Control, shm_object);
+  name = shm->Object.name.name_p;
   /** We assign fixed pattern of naming for thread-stacks, and treat them 
    *  accordingly.
    */
-  if( strncmp(shm->Object.name.name_p, "/taskfs/", 8) == 0 ) {
+  if( strncmp( name, "/taskfs/", 8) == 0 ) {
     /**
      * Obtain the object id of the thread and then get the thread control block
      * corresponding to that id. 
      */
-    Control = _Objects_Get_by_name(&_Thread_Information.Objects, shm->Object.name.name_p[8], &len, &err);
+    err = _Objects_Name_to_id_u32(
+            &_POSIX_Threads_Information.Objects,
+           _Objects_Build_name( name[8], name[9], name[10], name[11]),
+            RTEMS_LOCAL,
+            &id
+            );
+    Control = _Thread_Get( id, &lock_context );
      if( Control != NULL ) {
        shm_obj->handle = Control->Start.Initial_stack.area;
        if( size != Control->Start.Initial_stack.size) {
@@ -134,4 +145,3 @@ void * _POSIX_Shm_Object_mmap_from_workspace(
 
   return (char*)shm_obj->handle + off;
 }
-

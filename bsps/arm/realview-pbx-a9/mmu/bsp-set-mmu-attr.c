@@ -62,7 +62,7 @@ void _Memory_protection_Unset_entries(uintptr_t begin, size_t size)
   
   if( begin != NULL ) {
     end = begin + size;
-    access_flags = translate_flags( RTEMS_READ_ONLY );
+    access_flags = translate_flags( RTEMS_NO_ACCESS );
 
     /*
      *  The ARM reference manual instructs to disable all the interrupts before
