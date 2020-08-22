@@ -59,17 +59,10 @@ void *POSIX_Init( void *argument )
  /*
   * We set the memory attributes of the stack from the application.
   */
-<<<<<<< HEAD
   _Memory_protection_Set_entries( stack_addr1, stack_size1, RTEMS_NO_ACCESS | RTEMS_MEMORY_CACHED );
 
   pthread_create( &id2, &attr2, Test_routine, NULL );
   _Memory_protection_Set_entries( stack_addr2, stack_size2, RTEMS_NO_ACCESS | RTEMS_MEMORY_CACHED );
-=======
-  _Memory_protection_Set_entries( stack_addr1, stack_size1, RTEMS_READ_ONLY | RTEMS_MEMORY_CACHED );
-
-    pthread_create( &id2, &attr2, Test_routine, NULL );
-  _Memory_protection_Set_entries( stack_addr2, stack_size2, RTEMS_READ_ONLY | RTEMS_MEMORY_CACHED );
->>>>>>> 989d286862b21386363ab58a8d3aec9c226bf2de
 
   /*
    * Add leading "/taskfs/" to denote thread-stack name.
