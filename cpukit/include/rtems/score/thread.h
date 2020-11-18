@@ -869,6 +869,13 @@ struct _Thread_Control {
    */
   struct User_extensions_Iterator *last_user_extensions_iterator;
 
+#if defined RTEMS_THREAD_STACK_PROTECTION
+    struct {
+        Chain_Iterator Iterator;
+        void *previous;
+      } Iter;
+#endif
+
   /**
    * @brief Variable length array of user extension pointers.
    *

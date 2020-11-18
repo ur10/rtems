@@ -158,7 +158,6 @@ void _User_extensions_Iterate(
   const User_extensions_Table *initial_end;
   const Chain_Node            *end;
   Chain_Node                  *node;
-  User_extensions_Iterator     iter;
   ISR_lock_Context             lock_context;
 
   executing = _Thread_Get_executing();
@@ -181,22 +180,47 @@ void _User_extensions_Iterate(
 
   _User_extensions_Acquire( &lock_context );
 
-  _Chain_Iterator_initialize(
+  if ( executing != NULL ) {
+    executing->Iter.previous = (void *)executing->last_user_extensions_iterator;
+    executing->last_user_extensions_iterator = (User_extensions_Iterator *)&executing->Iter;
+
+     _Chain_Iterator_initialize(
     &_User_extensions_List.Active,
     &_User_extensions_List.Iterators,
-    &iter.Iterator,
+    &executing->Iter.Iterator,
     direction
   );
 
-  if ( executing != NULL ) {
-    iter.previous = executing->last_user_extensions_iterator;
-    executing->last_user_extensions_iterator = &iter;
-  }
-
-  while ( ( node = _Chain_Iterator_next( &iter.Iterator ) ) != end ) {
+    while ( ( node = _Chain_Iterator_next( &executing->Iter.Iterator ) ) != end ) {
     const User_extensions_Control *extension;
 
-    _Chain_Iterator_set_position( &iter.Iterator, node );
+    _Chain_Iterator_set_position( &executing->Iter.Iterator, node );
+
+    _User_extensions_Release( &lock_context );
+
+    extension = (const User_extensions_Control *) node;
+    ( *visitor )( executing, arg, &extension->Callouts );
+
+    _User_extensions_Acquire( &lock_context );
+  }
+  
+    executing->last_user_extensions_iterator = (User_extensions_Iterator *)executing->Iter.previous;
+  
+  _Chain_Iterator_destroy( &executing->Iter.Iterator );
+
+  } else {
+
+    _Chain_Iterator_initialize(
+    &_User_extensions_List.Active,
+    &_User_extensions_List.Iterators,
+    &_Per_CPU_Information[0].per_cpu.Iter.Iterator,
+    direction
+  );
+
+    while ( ( node = _Chain_Iterator_next( &_Per_CPU_Information[0].per_cpu.Iter.Iterator ) ) != end ) {
+    const User_extensions_Control *extension;
+
+    _Chain_Iterator_set_position( &_Per_CPU_Information[0].per_cpu.Iter.Iterator, node );
 
     _User_extensions_Release( &lock_context );
 
@@ -206,11 +230,9 @@ void _User_extensions_Iterate(
     _User_extensions_Acquire( &lock_context );
   }
 
-  if ( executing != NULL ) {
-    executing->last_user_extensions_iterator = iter.previous;
-  }
+  _Chain_Iterator_destroy( &_Per_CPU_Information[0].per_cpu.Iter.Iterator );
 
-  _Chain_Iterator_destroy( &iter.Iterator );
+  }
 
   _User_extensions_Release( &lock_context );
 

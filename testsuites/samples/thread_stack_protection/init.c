@@ -74,10 +74,11 @@ void *POSIX_Init( void *argument )
   /*
    * Write to the stack address of thread1 after it has been switched out.
    */ 
-  printf("Writing to the stack of thread1 \n");
-  memset(stack_addr1, 0, stack_size1);
+
 
   pthread_join( id2, NULL );
+    printf("Writing to the stack of thread2 \n");
+  memset(stack_addr2, 0, stack_size1);
   /*
    * Write to the stack address of thread2 after it has been switched out.
    */  
@@ -94,13 +95,12 @@ void *POSIX_Init( void *argument )
 
 #define CONFIGURE_INITIAL_EXTENSIONS RTEMS_TEST_INITIAL_EXTENSION
 
-#define CONFIGURE_MAXIMUM_POSIX_THREADS        2
+#define CONFIGURE_MAXIMUM_POSIX_THREADS        3
 
 #define CONFIGURE_POSIX_INIT_THREAD_TABLE
 
 #define CPU_INTERRUPT_STACK_ALIGNMENT 4096
 
-#define CONFIGURE_INITIAL_EXTENSIONS { .fatal = fatal_extension }
 
 #define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
 #define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate

@@ -25,7 +25,7 @@
   #include <rtems/asm.h>
 #else
   #include <rtems/score/assert.h>
-  #include <rtems/score/chain.h>
+  #include <rtems/score/chainimpl.h>
   #include <rtems/score/isrlock.h>
   #include <rtems/score/smp.h>
   #include <rtems/score/timestamp.h>
@@ -596,6 +596,11 @@ typedef struct Per_CPU_Control {
   #endif
 
   struct Record_Control *record;
+
+     struct {
+        Chain_Iterator Iterator;
+        void *previous;
+      } Iter;
 
   Per_CPU_Stats Stats;
 } Per_CPU_Control;
