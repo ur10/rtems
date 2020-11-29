@@ -36,8 +36,13 @@ rtems_task Task_1(
 
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
 
-#include <rtems/confdefs.h>
+#define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
+#define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate
+#define CONFIGURE_TASK_STACK_DEALLOCATOR     bsp_stack_free
 
+#include <bsp/stackalloc.h>
+
+#include <rtems/confdefs.h>
 /* global variables */
 
 TEST_EXTERN rtems_id   Task_id[ 4 ];         /* array of task ids */

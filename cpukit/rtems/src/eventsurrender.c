@@ -23,6 +23,10 @@
 #include <rtems/score/threadimpl.h>
 #include <rtems/score/watchdogimpl.h>
 
+#if defined RTEMS_THREAD_STACK_PROTECTION
+  #include <rtems/score/memoryprotection.h>
+#endif
+
 static void _Event_Satisfy(
   Thread_Control  *the_thread,
   Event_Control   *event,
@@ -31,7 +35,13 @@ static void _Event_Satisfy(
 )
 {
   event->pending_events = _Event_sets_Clear( pending_events, seized_events );
+#if defined RTEMS_THREAD_STACK_PROTECTION
+    _Memory_protection_Disable();
+#endif
   *(rtems_event_set *) the_thread->Wait.return_argument = seized_events;
+#if defined RTEMS_THREAD_STACK_PROTECTION
+    _Memory_protection_Enable();
+#endif
 }
 
 static bool _Event_Is_blocking_on_event(

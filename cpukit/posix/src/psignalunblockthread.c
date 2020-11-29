@@ -24,6 +24,9 @@
 #include <signal.h>
 
 #include <rtems/score/isr.h>
+#if defined RTEMS_THREAD_STACK_PROTECTION
+#include <rtems/score/memoryprotection.h>
+#endif
 #include <rtems/score/threadimpl.h>
 #include <rtems/score/threadqimpl.h>
 #include <rtems/score/watchdogimpl.h>
@@ -205,6 +208,10 @@ bool _POSIX_signals_Unblock_thread(
 
       the_info = (siginfo_t *) the_thread->Wait.return_argument;
 
+#if defined RTEMS_THREAD_STACK_PROTECTION
+_Memory_protection_Disable();
+#endif
+
       if ( !info ) {
         the_info->si_signo = signo;
         the_info->si_code = SI_USER;
@@ -212,6 +219,9 @@ bool _POSIX_signals_Unblock_thread(
       } else {
         *the_info = *info;
       }
+#if defined RTEMS_THREAD_STACK_PROTECTION
+_Memory_protection_Enable();
+#endif
 
       _Thread_queue_Extract_with_proxy( the_thread );
       return _POSIX_signals_Unblock_thread_done( the_thread, api, true );

@@ -97,6 +97,11 @@ TEST_EXTERN rtems_name Queue_name[ 4 ];      /* array of queue names */
 
 #define CONFIGURE_EXTRA_TASK_STACKS         (3 * RTEMS_MINIMUM_STACK_SIZE)
 
-#include <rtems/confdefs.h>
+#define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
+#define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate
+#define CONFIGURE_TASK_STACK_DEALLOCATOR     bsp_stack_free
 
+#include <bsp/stackalloc.h>
+
+#include <rtems/confdefs.h>
 /* end of include file */

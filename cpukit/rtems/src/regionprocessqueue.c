@@ -22,6 +22,10 @@
 #include <rtems/score/status.h>
 #include <rtems/score/threadqimpl.h>
 
+#if defined RTEMS_THREAD_STACK_PROTECTION
+ #include <rtems/score/memoryprotection.h>
+#endif
+
 void _Region_Process_queue(
   Region_Control *the_region
 )
@@ -63,8 +67,13 @@ void _Region_Process_queue(
 
     if ( the_segment == NULL )
       break;
-
+#if defined RTEMS_THREAD_STACK_PROTECTION
+    _Memory_protection_Disable();
+#endif     
     *(void **)the_thread->Wait.return_argument = the_segment;
+#if defined RTEMS_THREAD_STACK_PROTECTION
+    _Memory_protection_Enable();
+#endif
     _Thread_queue_Extract( the_thread );
     the_thread->Wait.return_code = STATUS_SUCCESSFUL;
   }

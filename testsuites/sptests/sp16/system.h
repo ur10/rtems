@@ -54,6 +54,12 @@ rtems_task Task5(
 
 #define CONFIGURE_EXTRA_TASK_STACKS         (1 * RTEMS_MINIMUM_STACK_SIZE)
 
+#define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
+#define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate
+#define CONFIGURE_TASK_STACK_DEALLOCATOR     bsp_stack_free
+
+#include <bsp/stackalloc.h>
+
 #include <rtems/confdefs.h>
 
 /* global variables */

@@ -153,6 +153,11 @@ rtems_task Init(
 
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
 
+#define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
+#define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate
+#define CONFIGURE_TASK_STACK_DEALLOCATOR     bsp_stack_free
+
+#include <bsp/stackalloc.h>
 #define CONFIGURE_INIT
 #include <rtems/confdefs.h>
 

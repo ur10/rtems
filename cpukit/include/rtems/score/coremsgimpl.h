@@ -27,6 +27,10 @@
 #include <rtems/score/threaddispatch.h>
 #include <rtems/score/threadqimpl.h>
 
+#if defined RTEMS_THREAD_STACK_PROTECTION
+ #include <rtems/score/memoryprotection.h>
+#endif
+
 #include <limits.h>
 #include <string.h>
 
@@ -586,7 +590,9 @@ RTEMS_INLINE_ROUTINE Thread_Control *_CORE_message_queue_Dequeue_receiver(
   if ( the_thread == NULL ) {
     return NULL;
   }
-
+#if defined RTEMS_THREAD_STACK_PROTECTION
+  _Memory_protection_Disable();
+#endif
    *(size_t *) the_thread->Wait.return_argument = size;
    the_thread->Wait.count = (uint32_t) submit_type;
 
@@ -595,6 +601,9 @@ RTEMS_INLINE_ROUTINE Thread_Control *_CORE_message_queue_Dequeue_receiver(
     the_thread->Wait.return_argument_second.mutable_object,
     size
   );
+#if defined RTEMS_THREAD_STACK_PROTECTION
+  _Memory_protection_Enable();
+#endif
 
   _Thread_queue_Extract_critical(
     &the_message_queue->Wait_queue.Queue,

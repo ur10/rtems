@@ -76,6 +76,15 @@ rtems_status_code _Memory_protection_Unset_entries(
   size_t size
 );
 
+
+rtems_status_code _Memory_protection_Disable(
+  void
+);
+
+rtems_status_code _Memory_protection_Enable(
+  void
+);
+
 #endif  /* !defined ( ASM ) */
 
 #ifdef __cplusplus

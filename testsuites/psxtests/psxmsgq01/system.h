@@ -47,6 +47,12 @@ void *Task_5(void *argument);
 #define CONFIGURE_POSIX_INIT_THREAD_STACK_SIZE \
         (RTEMS_MINIMUM_STACK_SIZE * 10)
 
+#define CONFIGURE_TASK_STACK_ALLOCATOR_INIT  bsp_stack_allocate_init
+#define CONFIGURE_TASK_STACK_ALLOCATOR       bsp_stack_allocate
+#define CONFIGURE_TASK_STACK_DEALLOCATOR     bsp_stack_free
+
+#include <bsp/stackalloc.h>
+#define CONFIGURE_INIT
 #include <rtems/confdefs.h>
 
 /* global variables */
